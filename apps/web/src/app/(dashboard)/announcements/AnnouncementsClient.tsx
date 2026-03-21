@@ -100,7 +100,7 @@ export default function AnnouncementsClient() {
         {isAdmin && (
           <button
             onClick={() => { setEditing(null); setShowModal(true) }}
-            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
           >
             <Plus size={15} /> New announcement
           </button>
@@ -151,7 +151,7 @@ export default function AnnouncementsClient() {
                   'h-1',
                   a.priority === 'URGENT' ? 'bg-red-500' :
                   a.priority === 'HIGH'   ? 'bg-amber-400' :
-                  a.priority === 'NORMAL' ? 'bg-blue-400' : 'bg-gray-200'
+                  a.priority === 'NORMAL' ? 'bg-green-400' : 'bg-gray-200'
                 )} />
 
                 <div className="p-5">
@@ -200,7 +200,7 @@ export default function AnnouncementsClient() {
                       <div className="flex items-center gap-1 shrink-0">
                         <button
                           onClick={() => { setEditing(a); setShowModal(true) }}
-                          className="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                          className="p-2 rounded text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
                           title="Edit"
                         >
                           <Pencil size={14} />
@@ -208,7 +208,7 @@ export default function AnnouncementsClient() {
                         <button
                           onClick={() => handleDelete(a.id)}
                           disabled={deleting === a.id}
-                          className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                          className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                           title="Delete"
                         >
                           <Trash2 size={14} />

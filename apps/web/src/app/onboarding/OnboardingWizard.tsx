@@ -119,7 +119,7 @@ export default function OnboardingWizard({ userName }: Props) {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
 
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg mb-5">
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded mb-5">
               {error}
             </div>
           )}
@@ -139,7 +139,7 @@ export default function OnboardingWizard({ userName }: Props) {
                 <input
                   type="text" value={form.estateName} onChange={handleEstateName}
                   placeholder="e.g. Green Park Estate"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                  className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                 />
               </div>
 
@@ -147,7 +147,7 @@ export default function OnboardingWizard({ userName }: Props) {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Estate URL <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500">
+                <div className="flex items-center border border-gray-200 rounded overflow-hidden focus-within:ring-2 focus-within:ring-green-600">
                   <span className="bg-gray-50 border-r border-gray-200 px-3 py-2.5 text-sm text-gray-400 shrink-0">
                     estateiq.app/
                   </span>
@@ -170,7 +170,7 @@ export default function OnboardingWizard({ userName }: Props) {
                 <input
                   type="text" value={form.address} onChange={set('address')}
                   placeholder="e.g. Lekki Phase 1, Lagos"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                  className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                 />
               </div>
             </div>
@@ -191,7 +191,7 @@ export default function OnboardingWizard({ userName }: Props) {
                   </label>
                   <input
                     type="text" value={form.firstName} onChange={set('firstName')}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                    className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                 </div>
                 <div>
@@ -200,7 +200,7 @@ export default function OnboardingWizard({ userName }: Props) {
                   </label>
                   <input
                     type="text" value={form.lastName} onChange={set('lastName')}
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                    className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                 </div>
               </div>
@@ -210,11 +210,11 @@ export default function OnboardingWizard({ userName }: Props) {
                 <input
                   type="tel" value={form.phone} onChange={set('phone')}
                   placeholder="e.g. 08012345678"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                  className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                 />
               </div>
 
-              <div className="bg-brand-50 rounded-lg p-3 text-xs text-brand-700">
+              <div className="bg-brand-50 rounded p-3 text-xs text-brand-700">
                 You can invite other admins and residents after setup from the Residents section.
               </div>
             </div>
@@ -238,7 +238,7 @@ export default function OnboardingWizard({ userName }: Props) {
                   <input
                     type="text" value={form.unitBlock} onChange={set('unitBlock')}
                     placeholder="e.g. Block A"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                    className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                 </div>
                 <div>
@@ -248,12 +248,12 @@ export default function OnboardingWizard({ userName }: Props) {
                   <input
                     type="text" value={form.unitNumber} onChange={set('unitNumber')}
                     placeholder="e.g. House 3"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                    className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
+              <div className="bg-gray-50 rounded p-3 text-xs text-gray-500">
                 This unit will be assigned to you as the admin. You can add all remaining units after setup.
               </div>
             </div>
@@ -273,7 +273,7 @@ export default function OnboardingWizard({ userName }: Props) {
               <button
                 onClick={() => setStep(p => p + 1)}
                 disabled={!canProceed()}
-                className="flex items-center gap-1.5 bg-brand-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-40 transition-colors"
+                className="flex items-center gap-1.5 bg-brand-600 text-white px-6 py-2.5 rounded text-sm font-medium hover:bg-brand-700 disabled:opacity-40 transition-colors"
               >
                 Continue <ChevronRight size={15} />
               </button>
@@ -281,7 +281,7 @@ export default function OnboardingWizard({ userName }: Props) {
               <button
                 onClick={handleSubmit}
                 disabled={!canProceed() || loading}
-                className="flex items-center gap-2 bg-brand-600 text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-40 transition-colors"
+                className="flex items-center gap-2 bg-brand-600 text-white px-6 py-2.5 rounded text-sm font-medium hover:bg-brand-700 disabled:opacity-40 transition-colors"
               >
                 {loading ? (
                   <><Loader2 size={15} className="animate-spin" /> Setting up...</>

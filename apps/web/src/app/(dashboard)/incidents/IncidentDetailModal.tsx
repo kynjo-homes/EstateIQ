@@ -89,7 +89,7 @@ export default function IncidentDetailModal({ incident, onClose, onResolve, onDe
             <AlertTriangle size={16} className="text-red-600" />
             <h2 className="font-semibold text-gray-900">Incident details</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
@@ -115,7 +115,7 @@ export default function IncidentDetailModal({ incident, onClose, onResolve, onDe
           {/* Description */}
           <div>
             <p className="text-xs font-medium text-gray-500 mb-1">Description</p>
-            <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3 whitespace-pre-wrap">
+            <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded p-3 whitespace-pre-wrap">
               {incident.description}
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function IncidentDetailModal({ incident, onClose, onResolve, onDe
           <div className="space-y-3">
             {details.map(({ icon: Icon, label, value, muted }) => (
               <div key={label} className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded bg-gray-100 flex items-center justify-center shrink-0">
                   <Icon size={13} className="text-gray-500" />
                 </div>
                 <div>
@@ -167,14 +167,14 @@ export default function IncidentDetailModal({ incident, onClose, onResolve, onDe
           <div className="flex gap-3 pt-1">
             <button
               onClick={onDelete}
-              className="flex items-center gap-1.5 px-4 py-2.5 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2.5 border border-red-200 text-red-600 rounded text-sm font-medium hover:bg-red-50 transition-colors"
             >
               <Trash2 size={13} /> Delete
             </button>
 
             <button
               onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Close
             </button>
@@ -182,7 +182,7 @@ export default function IncidentDetailModal({ incident, onClose, onResolve, onDe
             {!isResolved && (
               <button
                 onClick={onResolve}
-                className="flex-1 bg-green-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 bg-green-600 text-white rounded py-2.5 text-sm font-medium hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
               >
                 <CheckCircle2 size={14} /> Mark resolved
               </button>

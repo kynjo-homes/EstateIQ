@@ -66,7 +66,7 @@ export default function MyBookingsPanel({ onClose }: Props) {
             <CalendarCheck size={16} className="text-brand-600" />
             <h2 className="font-semibold text-gray-900">My bookings</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>

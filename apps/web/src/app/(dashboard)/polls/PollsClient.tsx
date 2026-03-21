@@ -103,7 +103,7 @@ export default function PollsClient() {
         {isAdmin && (
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
           >
             <Plus size={15} /> Create poll
           </button>
@@ -189,7 +189,7 @@ export default function PollsClient() {
                       <button
                         onClick={() => handleDelete(poll.id)}
                         disabled={deleting === poll.id}
-                        className="p-1.5 rounded-lg text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 shrink-0"
+                        className="p-1.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 shrink-0"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -212,12 +212,12 @@ export default function PollsClient() {
                           onClick={() => canVote && !isVoting && handleVote(poll.id, i)}
                           disabled={!canVote || isVoting}
                           className={cn(
-                            'w-full text-left rounded-lg border transition-all overflow-hidden',
+                            'w-full text-left rounded border transition-all overflow-hidden',
                             canVote && !isVoting
-                              ? 'hover:border-blue-400 hover:bg-brand-50 cursor-pointer'
+                              ? 'hover:border-green-400 hover:bg-brand-50 cursor-pointer'
                               : 'cursor-default',
                             isMyVote
-                              ? 'border-blue-400 bg-brand-50'
+                              ? 'border-green-400 bg-brand-50'
                               : 'border-gray-100 bg-white',
                           )}
                         >
@@ -225,8 +225,8 @@ export default function PollsClient() {
                             {showResults && (
                               <div
                                 className={cn(
-                                  'absolute inset-0 rounded-lg transition-all duration-500',
-                                  isMyVote ? 'bg-blue-100' : isLeading ? 'bg-gray-100' : 'bg-gray-50'
+                                  'absolute inset-0 rounded transition-all duration-500',
+                                  isMyVote ? 'bg-green-100' : isLeading ? 'bg-gray-100' : 'bg-gray-50'
                                 )}
                                 style={{ width: `${percent}%` }}
                               />

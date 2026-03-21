@@ -106,7 +106,7 @@ export default function IncidentsClient() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex-1 min-w-48 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
+        <div className="flex-1 min-w-48 flex items-center gap-2 bg-white border border-gray-200 rounded px-3 py-2">
           <Search size={14} className="text-gray-400 shrink-0" />
           <input
             type="text"
@@ -118,7 +118,7 @@ export default function IncidentsClient() {
         </div>
         <button
           onClick={() => setShowReport(true)}
-          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors"
         >
           <Plus size={15} /> Report incident
         </button>
@@ -256,7 +256,7 @@ export default function IncidentsClient() {
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         onClick={() => setSelected(inc)}
-                        className="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                        className="p-2 rounded text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
                         title="View details"
                       >
                         <Eye size={14} />
@@ -264,7 +264,7 @@ export default function IncidentsClient() {
                       {!isResolved && (
                         <button
                           onClick={() => handleResolve(inc.id)}
-                          className="p-2 rounded-lg text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
+                          className="p-2 rounded text-gray-400 hover:text-green-600 hover:bg-green-50 transition-colors"
                           title="Mark as resolved"
                         >
                           <CheckCircle2 size={14} />
@@ -273,7 +273,7 @@ export default function IncidentsClient() {
                       <button
                         onClick={() => handleDelete(inc.id)}
                         disabled={deleting === inc.id}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                        className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                         title="Delete"
                       >
                         <Trash2 size={14} />

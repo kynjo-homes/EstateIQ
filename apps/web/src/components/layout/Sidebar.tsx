@@ -42,8 +42,15 @@ export default function Sidebar() {
         'flex items-center gap-3 px-4 py-5 border-b border-gray-800',
         collapsed && 'justify-center px-2'
       )}>
-        <div className="bg-blue-600 rounded-lg p-1.5 shrink-0">
-          <Building2 size={18} />
+        <div className="bg-green-600 rounded p-1.5 shrink-0">
+        <svg width="18" height="18" viewBox="0 0 56 56" fill="none">
+  <path d="M28 4L50 17V39L28 52L6 39V17L28 4Z"
+    fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M28 4L28 52" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+  <path d="M6 17L50 17"  fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+  <path d="M6 39L50 39"  fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2"/>
+  <circle cx="28" cy="28" r="7" fill="#fff"/>
+</svg>
         </div>
         {!collapsed && (
           <span className="font-semibold text-base tracking-tight">EstateIQ</span>
@@ -59,10 +66,10 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
+                'flex items-center gap-3 px-3 py-2.5 rounded text-sm transition-colors',
                 collapsed && 'justify-center px-2',
                 active
-                  ? 'bg-blue-600 text-white'
+                  ? 'bg-green-600 text-white'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'
               )}
             >
@@ -78,7 +85,7 @@ export default function Sidebar() {
         <button
           onClick={() => signOut({ callbackUrl: '/sign-in' })}
           className={cn(
-            'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors',
+            'flex items-center gap-3 w-full px-3 py-2.5 rounded text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors',
             collapsed && 'justify-center px-2'
           )}
         >

@@ -67,7 +67,7 @@ export default function LeviesClient() {
           { label: 'Outstanding',     value: fmt(totalPending),   icon: Clock,        color: 'bg-amber-50  text-amber-600' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4">
-            <div className={cn('rounded-lg p-2.5', color)}>
+            <div className={cn('rounded p-2.5', color)}>
               <Icon size={18} />
             </div>
             <div>
@@ -86,7 +86,7 @@ export default function LeviesClient() {
         {isAdmin && (
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
           >
             <Plus size={15} /> Create levy
           </button>
@@ -187,7 +187,7 @@ export default function LeviesClient() {
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => setSelectedLevy(levy)}
-                      className="p-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                      className="p-2 rounded text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
                       title="View payments"
                     >
                       <Eye size={14} />
@@ -196,7 +196,7 @@ export default function LeviesClient() {
                       <button
                         onClick={() => handleDelete(levy.id)}
                         disabled={deleting === levy.id}
-                        className="p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
+                        className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                         title="Delete levy"
                       >
                         <Trash2 size={14} />

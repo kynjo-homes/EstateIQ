@@ -53,14 +53,14 @@ export default function ReportIncidentModal({ onClose, onSuccess }: Props) {
             <AlertTriangle size={16} className="text-red-600" />
             <h2 className="font-semibold text-gray-900">Report security incident</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           {/* Title */}
@@ -71,7 +71,7 @@ export default function ReportIncidentModal({ onClose, onSuccess }: Props) {
             <input
               type="text" value={form.title} onChange={set('title')} required
               placeholder="e.g. Suspicious person at Block B gate"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
             />
           </div>
 
@@ -85,7 +85,7 @@ export default function ReportIncidentModal({ onClose, onSuccess }: Props) {
                   type="button"
                   onClick={() => setForm(p => ({ ...p, severity: value }))}
                   className={cn(
-                    'flex items-start gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all',
+                    'flex items-start gap-2.5 px-3 py-2.5 rounded border text-left transition-all',
                     form.severity === value
                       ? `${color} ring-1 ring-current ring-offset-1`
                       : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'
@@ -112,7 +112,7 @@ export default function ReportIncidentModal({ onClose, onSuccess }: Props) {
             <input
               type="text" value={form.location} onChange={set('location')}
               placeholder="e.g. Main gate, Block A entrance, Car park"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
             />
           </div>
 
@@ -124,12 +124,12 @@ export default function ReportIncidentModal({ onClose, onSuccess }: Props) {
             <textarea
               value={form.description} onChange={set('description')} required rows={4}
               placeholder="Describe what happened in detail — time, people involved, what was observed, any action taken..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 resize-none"
             />
           </div>
 
           {form.severity === 'CRITICAL' && (
-            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-xs text-red-700">
+            <div className="bg-red-50 border border-red-200 rounded px-4 py-3 text-xs text-red-700">
               <p className="font-semibold mb-0.5">Critical incident</p>
               <p>This will be flagged immediately to estate administrators. If lives are at risk, contact emergency services first.</p>
             </div>
@@ -138,13 +138,13 @@ export default function ReportIncidentModal({ onClose, onSuccess }: Props) {
           <div className="flex gap-3 pt-1">
             <button
               type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading || !canSubmit}
-              className="flex-1 bg-red-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-red-600 text-white rounded py-2.5 text-sm font-medium hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading
                 ? <><Loader2 size={14} className="animate-spin" /> Submitting...</>

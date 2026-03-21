@@ -57,14 +57,14 @@ export default function CreatePollModal({ onClose, onSuccess }: Props) {
             <BarChart2 size={16} className="text-brand-600" />
             <h2 className="font-semibold text-gray-900">Create poll</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           {/* Question */}
@@ -77,7 +77,7 @@ export default function CreatePollModal({ onClose, onSuccess }: Props) {
               onChange={e => setQuestion(e.target.value)}
               placeholder="e.g. Should we install CCTV cameras at the main gate?"
               required rows={2}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
             />
           </div>
 
@@ -99,7 +99,7 @@ export default function CreatePollModal({ onClose, onSuccess }: Props) {
                     value={opt}
                     onChange={e => updateOption(i, e.target.value)}
                     placeholder={`Option ${i + 1}`}
-                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                    className="flex-1 border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                   <button
                     type="button"
@@ -134,7 +134,7 @@ export default function CreatePollModal({ onClose, onSuccess }: Props) {
               value={endsAt}
               onChange={e => setEndsAt(e.target.value)}
               min={minDate} required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -154,11 +154,11 @@ export default function CreatePollModal({ onClose, onSuccess }: Props) {
 
           {/* Preview */}
           {question.trim() && validOptions.length >= 2 && (
-            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+            <div className="bg-gray-50 rounded p-4 space-y-2">
               <p className="text-xs font-medium text-gray-500 mb-1">Preview</p>
               <p className="text-sm font-semibold text-gray-900">{question}</p>
               {validOptions.map((o, i) => (
-                <div key={i} className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-600">
+                <div key={i} className="bg-white border border-gray-200 rounded px-3 py-2 text-sm text-gray-600">
                   {o}
                 </div>
               ))}
@@ -168,13 +168,13 @@ export default function CreatePollModal({ onClose, onSuccess }: Props) {
           <div className="flex gap-3 pt-1">
             <button
               type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading || !canSubmit}
-              className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading
                 ? <><Loader2 size={14} className="animate-spin" /> Creating...</>

@@ -82,7 +82,7 @@ export default function LevyDetailModal({ levy, onClose }: Props) {
             <h2 className="font-semibold text-gray-900">{levy.title}</h2>
             <p className="text-xs text-gray-400 mt-0.5">Payment tracker — {fmt(levy.amount)} per unit</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>

@@ -70,7 +70,7 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
             <ShieldCheck size={16} className="text-green-600" />
             <h2 className="font-semibold text-gray-900">Gate check-in</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
@@ -96,12 +96,12 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
                   }}
                   placeholder="000000"
                   maxLength={6}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-2xl font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="w-full border border-gray-200 rounded px-4 py-3 text-2xl font-mono tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-green-500"
                 />
               </div>
 
               {error && (
-                <div className="flex items-start gap-2 bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
+                <div className="flex items-start gap-2 bg-red-50 text-red-700 text-sm px-4 py-3 rounded">
                   <AlertCircle size={15} className="shrink-0 mt-0.5" />
                   {error}
                 </div>
@@ -127,7 +127,7 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
               <button
                 type="submit"
                 disabled={code.length !== 6 || loading}
-                className="w-full bg-green-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                className="w-full bg-green-600 text-white rounded py-2.5 text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
               >
                 {loading
                   ? <><Loader2 size={14} className="animate-spin" /> Checking in...</>
@@ -139,7 +139,7 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
                 <button
                   type="button"
                   onClick={() => { setCode(''); setResult(null); setError('') }}
-                  className="w-full border border-gray-200 text-gray-600 rounded-lg py-2 text-sm hover:bg-gray-50 transition-colors"
+                  className="w-full border border-gray-200 text-gray-600 rounded py-2 text-sm hover:bg-gray-50 transition-colors"
                 >
                   Check in another visitor
                 </button>
@@ -170,13 +170,13 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
                 value={checkoutId}
                 onChange={e => { setCheckoutId(e.target.value); setCheckoutError('') }}
                 placeholder="Paste visitor ID to log exit"
-                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-600"
+                className="flex-1 border border-gray-200 rounded px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-600"
               />
               <button
                 type="submit"
                 disabled={!checkoutId.trim() || checkingOut}
                 className={cn(
-                  'px-3 py-2 rounded-lg text-xs font-medium transition-colors flex items-center gap-1 shrink-0',
+                  'px-3 py-2 rounded text-xs font-medium transition-colors flex items-center gap-1 shrink-0',
                   checkoutDone
                     ? 'bg-green-50 text-green-700 border border-green-200'
                     : 'bg-gray-900 text-white hover:bg-gray-700 disabled:opacity-50'

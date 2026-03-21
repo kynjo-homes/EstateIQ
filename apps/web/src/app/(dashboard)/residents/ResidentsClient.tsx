@@ -118,7 +118,7 @@ export default function ResidentsClient() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3">
-        <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
+        <div className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded px-3 py-2">
           <Search size={15} className="text-gray-400 shrink-0" />
           <input
             type="text"
@@ -130,7 +130,7 @@ export default function ResidentsClient() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
         >
           <UserPlus size={15} /> Add resident
         </button>
@@ -179,7 +179,7 @@ export default function ResidentsClient() {
                   {/* Name + email */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 text-brand-700 flex items-center justify-center text-xs font-semibold shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-green-100 text-brand-700 flex items-center justify-center text-xs font-semibold shrink-0">
                         {initials}
                       </div>
                       <div>
@@ -236,7 +236,7 @@ export default function ResidentsClient() {
                       </button>
 
                       {menuOpen === r.id && (
-                        <div className="absolute right-0 top-8 bg-white border border-gray-100 rounded-lg shadow-lg z-10 py-1 w-48">
+                        <div className="absolute right-0 top-8 bg-white border border-gray-100 rounded shadow-lg z-10 py-1 w-48">
                           <button
                             onClick={() => { setSelectedResident(r); setMenuOpen(null) }}
                             className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"

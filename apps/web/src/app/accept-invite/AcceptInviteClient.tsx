@@ -139,7 +139,7 @@ export default function AcceptInviteClient() {
 
             {/* Welcome header */}
             <div className="bg-brand-600 rounded-t-2xl px-6 py-5">
-              <p className="text-blue-100 text-sm">You've been invited to</p>
+              <p className="text-green-100 text-sm">You've been invited to</p>
               <h2 className="text-white font-semibold text-lg">{info.estateName}</h2>
             </div>
 
@@ -154,7 +154,7 @@ export default function AcceptInviteClient() {
               </div>
 
               {error && (
-                <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
+                <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">
                   {error}
                 </div>
               )}
@@ -173,7 +173,7 @@ export default function AcceptInviteClient() {
                       onChange={e => setPassword(e.target.value)}
                       required
                       placeholder="At least 8 characters"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-brand-600"
+                      className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-brand-600"
                     />
                     <button
                       type="button"
@@ -209,7 +209,7 @@ export default function AcceptInviteClient() {
                     onChange={e => setConfirm(e.target.value)}
                     required
                     placeholder="Repeat your password"
-                    className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 ${
+                    className={`w-full border rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 ${
                       confirm && confirm !== password
                         ? 'border-red-300 bg-red-50'
                         : 'border-gray-200'
@@ -223,7 +223,7 @@ export default function AcceptInviteClient() {
                 <button
                   type="submit"
                   disabled={loading || !password || !confirm || password !== confirm}
-                  className="w-full bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+                  className="w-full bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
                 >
                   {loading
                     ? <><Loader2 size={14} className="animate-spin" /> Activating account...</>

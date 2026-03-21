@@ -33,7 +33,7 @@ const ACTIVITY_COLORS: Record<string, string> = {
 const PRIORITY_COLORS: Record<string, string> = {
   URGENT: 'bg-red-500',
   HIGH:   'bg-amber-500',
-  NORMAL: 'bg-blue-400',
+  NORMAL: 'bg-green-400',
   LOW:    'bg-gray-300',
 }
 
@@ -128,20 +128,20 @@ export default function DashboardClient() {
           <h2 className="text-xl font-semibold text-white mb-1">
             Good {getTimeOfDay()}, {firstName} 👋
           </h2>
-          <p className="text-blue-100 text-sm">{bannerMessage}</p>
+          <p className="text-green-100 text-sm">{bannerMessage}</p>
         </div>
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <TrendingUp size={40} className="text-blue-400 hidden md:block" />
+          <TrendingUp size={40} className="text-green-400 hidden md:block" />
           <div className="flex items-center gap-1.5">
             {lastUpdated && (
-              <span className="text-blue-200 text-xs hidden md:block">
+              <span className="text-green-200 text-xs hidden md:block">
                 Updated {timeAgo(lastUpdated.toISOString())}
               </span>
             )}
             <button
               onClick={() => load(true)}
               disabled={refreshing}
-              className="text-blue-200 hover:text-white transition-colors"
+              className="text-green-200 hover:text-white transition-colors"
               title="Refresh stats"
             >
               <RefreshCw size={14} className={cn(refreshing && 'animate-spin')} />
@@ -154,7 +154,7 @@ export default function DashboardClient() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
 
         <a href="/residents" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
-          <div className="rounded-lg p-2.5 shrink-0 bg-brand-50 text-brand-600">
+          <div className="rounded p-2.5 shrink-0 bg-brand-50 text-brand-600">
             <Users size={20} />
           </div>
           <div className="min-w-0">
@@ -166,7 +166,7 @@ export default function DashboardClient() {
 
         <a href="/levies" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
           <div className={cn(
-            'rounded-lg p-2.5 shrink-0',
+            'rounded p-2.5 shrink-0',
             stats.finances.outstanding > 0 ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'
           )}>
             <CreditCard size={20} />
@@ -179,7 +179,7 @@ export default function DashboardClient() {
         </a>
 
         <a href="/visitors" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
-          <div className="rounded-lg p-2.5 shrink-0 bg-green-50 text-green-600">
+          <div className="rounded p-2.5 shrink-0 bg-green-50 text-green-600">
             <ShieldCheck size={20} />
           </div>
           <div className="min-w-0">
@@ -191,7 +191,7 @@ export default function DashboardClient() {
 
         <a href="/maintenance" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
           <div className={cn(
-            'rounded-lg p-2.5 shrink-0',
+            'rounded p-2.5 shrink-0',
             stats.maintenance.open > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
           )}>
             <Wrench size={20} />
@@ -296,19 +296,19 @@ export default function DashboardClient() {
           <div className="mt-5 pt-4 border-t border-gray-100">
             <p className="text-xs font-medium text-gray-500 mb-2">Quick actions</p>
             <div className="space-y-1">
-              <a href="/residents" className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
+              <a href="/residents" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
                 <span>Add a resident</span>
                 <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
               </a>
-              <a href="/announcements" className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
+              <a href="/announcements" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
                 <span>Create an announcement</span>
                 <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
               </a>
-              <a href="/levies" className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
+              <a href="/levies" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
                 <span>Set up a levy</span>
                 <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
               </a>
-              <a href="/visitors" className="flex items-center justify-between px-2 py-2 rounded-lg hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
+              <a href="/visitors" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
                 <span>Register a visitor</span>
                 <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
               </a>

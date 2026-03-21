@@ -66,14 +66,14 @@ export default function AnnouncementModal({ existing, onClose, onSuccess }: Prop
               {isEdit ? 'Edit announcement' : 'New announcement'}
             </h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           {/* Title */}
@@ -87,7 +87,7 @@ export default function AnnouncementModal({ existing, onClose, onSuccess }: Prop
               onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
               placeholder="e.g. Water supply suspension this Saturday"
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -101,7 +101,7 @@ export default function AnnouncementModal({ existing, onClose, onSuccess }: Prop
                   type="button"
                   onClick={() => setForm(p => ({ ...p, priority: value }))}
                   className={cn(
-                    'flex items-center gap-2.5 px-3 py-2.5 rounded-lg border text-left transition-all',
+                    'flex items-center gap-2.5 px-3 py-2.5 rounded border text-left transition-all',
                     form.priority === value
                       ? `${color} border-current ring-1 ring-current ring-offset-1`
                       : 'border-gray-200 hover:border-gray-300 bg-white text-gray-600'
@@ -142,18 +142,18 @@ export default function AnnouncementModal({ existing, onClose, onSuccess }: Prop
               required
               maxLength={1000}
               rows={5}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
             />
           </div>
 
           {/* Preview strip */}
           {form.title && (
-            <div className="rounded-lg border border-gray-100 overflow-hidden">
+            <div className="rounded border border-gray-100 overflow-hidden">
               <div className={cn(
                 'h-1',
                 form.priority === 'URGENT' ? 'bg-red-500' :
                 form.priority === 'HIGH'   ? 'bg-amber-400' :
-                form.priority === 'NORMAL' ? 'bg-blue-400' : 'bg-gray-200'
+                form.priority === 'NORMAL' ? 'bg-green-400' : 'bg-gray-200'
               )} />
               <div className="px-4 py-3 bg-gray-50">
                 <p className="text-xs text-gray-400 mb-0.5">Preview</p>
@@ -169,13 +169,13 @@ export default function AnnouncementModal({ existing, onClose, onSuccess }: Prop
           <div className="flex gap-3 pt-1">
             <button
               type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading || !form.title.trim() || !form.body.trim()}
-              className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
+              className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
             >
               {loading
                 ? <><Loader2 size={14} className="animate-spin" /> {isEdit ? 'Saving...' : 'Publishing...'}</>

@@ -85,14 +85,14 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
 
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white z-10">
           <h2 className="font-semibold text-gray-900">Add resident</h2>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           <div className="grid grid-cols-2 gap-3">
@@ -104,7 +104,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
                 </label>
                 <input
                   type="text" value={form[field]} onChange={set(field)} required
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                  className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                 />
               </div>
             ))}
@@ -116,7 +116,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
             </label>
             <input
               type="email" value={form.email} onChange={set('email')} required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
             <input
               type="tel" value={form.phone} onChange={set('phone')}
               placeholder="e.g. 08012345678"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -143,7 +143,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
             </div>
 
             {showAddUnit && (
-              <div className="mb-2 p-3 bg-brand-50 rounded-lg space-y-2">
+              <div className="mb-2 p-3 bg-brand-50 rounded space-y-2">
                 <p className="text-xs font-medium text-brand-700">Create a new unit</p>
                 {addUnitError && (
                   <p className="text-xs text-red-600 bg-red-50 px-2 py-1 rounded">{addUnitError}</p>
@@ -154,21 +154,21 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
                     placeholder="Block (e.g. Block A)"
                     value={newUnit.block}
                     onChange={e => setNewUnit(p => ({ ...p, block: e.target.value }))}
-                    className="w-full border border-brand-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full border border-brand-200 bg-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
                   <input
                     type="text"
                     placeholder="Number (e.g. House 3) *"
                     value={newUnit.number}
                     onChange={e => setNewUnit(p => ({ ...p, number: e.target.value }))}
-                    className="w-full border border-brand-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full border border-brand-200 bg-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
                 </div>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => { setShowAddUnit(false); setAddUnitError('') }}
-                    className="flex-1 text-sm text-gray-500 border border-gray-200 bg-white rounded-lg py-1.5 hover:bg-gray-50"
+                    className="flex-1 text-sm text-gray-500 border border-gray-200 bg-white rounded py-1.5 hover:bg-gray-50"
                   >
                     Cancel
                   </button>
@@ -176,7 +176,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
                     type="button"
                     onClick={handleAddUnit}
                     disabled={!newUnit.number.trim() || addingUnit}
-                    className="flex-1 text-sm text-white bg-brand-600 rounded-lg py-1.5 hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-1"
+                    className="flex-1 text-sm text-white bg-brand-600 rounded py-1.5 hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-1"
                   >
                     {addingUnit ? <Loader2 size={12} className="animate-spin" /> : null}
                     {addingUnit ? 'Adding...' : 'Add unit'}
@@ -186,11 +186,11 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
             )}
 
             {unitsLoading ? (
-              <div className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-400 flex items-center gap-2">
+              <div className="w-full border border-gray-200 rounded px-3 py-2 text-sm text-gray-400 flex items-center gap-2">
                 <Loader2 size={13} className="animate-spin" /> Loading units...
               </div>
             ) : unitsError ? (
-              <div className="w-full border border-red-200 bg-red-50 rounded-lg px-3 py-2 text-sm text-red-600 flex items-center justify-between">
+              <div className="w-full border border-red-200 bg-red-50 rounded px-3 py-2 text-sm text-red-600 flex items-center justify-between">
                 <span>Failed to load units</span>
                 <button type="button" onClick={loadUnits} className="text-xs underline">Retry</button>
               </div>
@@ -198,7 +198,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
               <select
                 value={form.unitId}
                 onChange={set('unitId')}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white"
+                className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white"
               >
                 <option value="">No unit assigned</option>
                 {units.map(u => (
@@ -221,7 +221,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
             <select
               value={form.role} onChange={set('role')}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white"
+              className="w-full border border-gray-200 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white"
             >
               <option value="RESIDENT">Resident</option>
               <option value="ADMIN">Admin</option>
@@ -232,13 +232,13 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
           <div className="flex gap-3 pt-2">
             <button
               type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading}
-              className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Adding...</> : 'Add resident'}
             </button>

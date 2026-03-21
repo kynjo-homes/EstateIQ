@@ -101,7 +101,7 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
             <CalendarCheck size={16} className="text-brand-600" />
             <h2 className="font-semibold text-gray-900">Book {facility.name}</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
@@ -119,7 +119,7 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
           ) : (
             <>
               {error && (
-                <div className="flex items-start gap-2 bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">
+                <div className="flex items-start gap-2 bg-red-50 text-red-700 text-sm px-4 py-3 rounded">
                   <AlertCircle size={15} className="shrink-0 mt-0.5" />
                   {error}
                 </div>
@@ -136,7 +136,7 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
                       value={form.startTime}
                       onChange={set('startTime')}
                       min={nowLocal} required
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                      className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                     />
                   </div>
                   <div>
@@ -148,14 +148,14 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
                       value={form.endTime}
                       onChange={set('endTime')}
                       min={form.startTime || nowLocal} required
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                      className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                     />
                   </div>
                 </div>
 
                 {/* Conflict warning */}
                 {conflict && (
-                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-lg">
+                  <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded">
                     <AlertCircle size={15} className="shrink-0 mt-0.5" />
                     This time slot overlaps an existing booking. Please choose a different time.
                   </div>
@@ -163,7 +163,7 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
 
                 {/* Booking summary */}
                 {duration() && !conflict && (
-                  <div className="bg-brand-50 rounded-lg px-4 py-3 space-y-1 text-xs text-brand-700">
+                  <div className="bg-brand-50 rounded px-4 py-3 space-y-1 text-xs text-brand-700">
                     <div className="flex justify-between">
                       <span className="flex items-center gap-1"><Clock size={11} /> Duration</span>
                       <span className="font-medium">{duration()}</span>
@@ -180,14 +180,14 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
                 <div className="flex gap-3">
                   <button
                     type="button" onClick={onClose}
-                    className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+                    className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={loading || !form.startTime || !form.endTime || conflict}
-                    className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {loading
                       ? <><Loader2 size={14} className="animate-spin" /> Booking...</>
@@ -207,7 +207,7 @@ export default function BookFacilityModal({ facility, onClose, onSuccess }: Prop
                     {upcomingBookings.map(b => (
                       <div
                         key={b.id}
-                        className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-xs"
+                        className="flex items-center justify-between bg-gray-50 rounded px-3 py-2 text-xs"
                       >
                         <span className="text-gray-600">
                           {b.resident.firstName} {b.resident.lastName}

@@ -15,7 +15,9 @@ const publicRoutes = [
 ]
 
 export default async function middleware(req: NextRequest) {
-  const isPublic = publicRoutes.some(r => req.nextUrl.pathname.startsWith(r))
+  const isPublic =
+    req.nextUrl.pathname === '/' ||
+    publicRoutes.some(r => req.nextUrl.pathname.startsWith(r))
   if (isPublic) return NextResponse.next()
 
   // Mobile JWT path

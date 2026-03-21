@@ -73,14 +73,14 @@ export default function FacilitiesClient() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowMyBookings(true)}
-            className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             <BookOpen size={15} /> My bookings
           </button>
           {isAdmin && (
             <button
               onClick={() => setShowAdd(true)}
-              className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+              className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
             >
               <Plus size={15} /> Add facility
             </button>
@@ -128,14 +128,14 @@ export default function FacilitiesClient() {
                     <div>
                       <h3 className="font-semibold text-white text-base">{f.name}</h3>
                       {f.description && (
-                        <p className="text-blue-100 text-xs mt-0.5 line-clamp-1">{f.description}</p>
+                        <p className="text-green-100 text-xs mt-0.5 line-clamp-1">{f.description}</p>
                       )}
                     </div>
                     {isAdmin && (
                       <button
                         onClick={() => handleDelete(f.id)}
                         disabled={deleting === f.id}
-                        className="p-1.5 rounded-lg text-blue-200 hover:text-white hover:bg-brand-500 transition-colors disabled:opacity-50"
+                        className="p-1.5 rounded text-green-200 hover:text-white hover:bg-brand-500 transition-colors disabled:opacity-50"
                       >
                         <Trash2 size={13} />
                       </button>
@@ -158,7 +158,7 @@ export default function FacilitiesClient() {
                   </div>
 
                   {bookedCount > 0 ? (
-                    <div className="bg-amber-50 rounded-lg px-3 py-2">
+                    <div className="bg-amber-50 rounded px-3 py-2">
                       <p className="text-xs text-amber-700 font-medium">
                         {bookedCount} upcoming booking{bookedCount > 1 ? 's' : ''}
                       </p>
@@ -171,7 +171,7 @@ export default function FacilitiesClient() {
                       )}
                     </div>
                   ) : (
-                    <div className="bg-green-50 rounded-lg px-3 py-2">
+                    <div className="bg-green-50 rounded px-3 py-2">
                       <p className="text-xs text-green-700 font-medium">Available — no upcoming bookings</p>
                     </div>
                   )}
@@ -180,7 +180,7 @@ export default function FacilitiesClient() {
                 <div className="px-5 pb-5">
                   <button
                     onClick={() => setBooking(f)}
-                    className="w-full bg-brand-600 text-white rounded-lg py-2 text-sm font-medium hover:bg-brand-700 transition-colors flex items-center justify-center gap-2"
+                    className="w-full bg-brand-600 text-white rounded py-2 text-sm font-medium hover:bg-brand-700 transition-colors flex items-center justify-center gap-2"
                   >
                     <CalendarCheck size={14} /> Book this facility
                   </button>

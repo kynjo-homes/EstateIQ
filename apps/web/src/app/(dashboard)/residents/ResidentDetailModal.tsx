@@ -68,7 +68,7 @@ export default function ResidentDetailModal({ resident, onClose, onToggleActive 
           <h2 className="font-semibold text-gray-900">Resident details</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors"
+            className="p-1 rounded hover:bg-gray-100 text-gray-400 transition-colors"
           >
             <X size={16} />
           </button>
@@ -111,7 +111,7 @@ export default function ResidentDetailModal({ resident, onClose, onToggleActive 
         <div className="px-6 py-4 space-y-4">
           {details.map(({ icon: Icon, label, value, muted }) => (
             <div key={label} className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center shrink-0">
                 <Icon size={15} className="text-gray-500" />
               </div>
               <div>
@@ -128,7 +128,7 @@ export default function ResidentDetailModal({ resident, onClose, onToggleActive 
         <div className="px-6 pb-6 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
           >
             Close
           </button>
@@ -138,7 +138,7 @@ export default function ResidentDetailModal({ resident, onClose, onToggleActive 
               onClose()
             }}
             className={cn(
-              'flex-1 rounded-lg py-2.5 text-sm font-medium transition-colors',
+              'flex-1 rounded py-2.5 text-sm font-medium transition-colors',
               resident.isActive
                 ? 'bg-red-50 text-red-600 hover:bg-red-100'
                 : 'bg-green-50 text-green-700 hover:bg-green-100'

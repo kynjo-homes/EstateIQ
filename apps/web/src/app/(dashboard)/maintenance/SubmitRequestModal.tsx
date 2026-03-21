@@ -58,14 +58,14 @@ export default function SubmitRequestModal({ onClose, onSuccess }: Props) {
             <Wrench size={16} className="text-brand-600" />
             <h2 className="font-semibold text-gray-900">Submit maintenance request</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           <div>
@@ -75,7 +75,7 @@ export default function SubmitRequestModal({ onClose, onSuccess }: Props) {
             <input
               type="text" value={form.title} onChange={set('title')} required
               placeholder="e.g. Burst pipe at Block A entrance"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -85,7 +85,7 @@ export default function SubmitRequestModal({ onClose, onSuccess }: Props) {
             </label>
             <select
               value={form.category} onChange={set('category')} required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 bg-white"
             >
               <option value="">Select a category</option>
               {CATEGORIES.map(c => (
@@ -103,7 +103,7 @@ export default function SubmitRequestModal({ onClose, onSuccess }: Props) {
                   type="button"
                   onClick={() => setForm(p => ({ ...p, priority: value }))}
                   className={cn(
-                    'px-3 py-2 rounded-lg border text-sm font-medium text-left transition-all',
+                    'px-3 py-2 rounded border text-sm font-medium text-left transition-all',
                     form.priority === value
                       ? `${color} ring-1 ring-current ring-offset-1`
                       : 'border-gray-200 text-gray-500 bg-white hover:border-gray-300'
@@ -122,24 +122,24 @@ export default function SubmitRequestModal({ onClose, onSuccess }: Props) {
             <textarea
               value={form.description} onChange={set('description')} required rows={4}
               placeholder="Describe the issue in detail — location, when it started, how severe it is..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
             />
           </div>
 
-          <div className="bg-gray-50 rounded-lg px-4 py-3 text-xs text-gray-500">
+          <div className="bg-gray-50 rounded px-4 py-3 text-xs text-gray-500">
             Photo attachments can be added after submission. The estate admin will be notified and assign a technician.
           </div>
 
           <div className="flex gap-3 pt-1">
             <button
               type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading || !canSubmit}
-              className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading
                 ? <><Loader2 size={14} className="animate-spin" /> Submitting...</>

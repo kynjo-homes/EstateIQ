@@ -101,14 +101,14 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
             <Wrench size={16} className="text-brand-600" />
             <h2 className="font-semibold text-gray-900">Request details</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <div className="p-6 space-y-5">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           {/* Title + badges */}
@@ -137,7 +137,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
           {/* Description */}
           <div>
             <p className="text-xs font-medium text-gray-500 mb-1">Description</p>
-            <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-3">
+            <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded p-3">
               {request.description}
             </p>
           </div>
@@ -174,7 +174,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
               Assigned to
             </label>
             <div className="flex gap-2">
-              <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2">
+              <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded px-3 py-2">
                 <User size={14} className="text-gray-400 shrink-0" />
                 <input
                   type="text"
@@ -187,7 +187,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
               <button
                 onClick={handleSaveAssignee}
                 disabled={updating}
-                className="px-3 py-2 border border-gray-200 rounded-lg text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors shrink-0"
+                className="px-3 py-2 border border-gray-200 rounded text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors shrink-0"
               >
                 Save
               </button>
@@ -207,7 +207,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
                     <div className={cn(
                       'flex-1 h-1.5 rounded-full transition-colors',
                       isDone    ? 'bg-brand-500' :
-                      isCurrent ? 'bg-blue-300' : 'bg-gray-100'
+                      isCurrent ? 'bg-green-300' : 'bg-gray-100'
                     )} />
                     {i < STATUS_FLOW.filter(s => s !== 'CLOSED').length - 1 && (
                       <ArrowRight size={10} className="text-gray-300 shrink-0" />
@@ -254,7 +254,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
           <div className="flex gap-3 pt-1">
             <button
               onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Close
             </button>
@@ -262,7 +262,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
               <button
                 onClick={handleStatusAdvance}
                 disabled={updating}
-                className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {updating
                   ? <><Loader2 size={14} className="animate-spin" /> Updating...</>

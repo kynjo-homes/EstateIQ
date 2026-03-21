@@ -87,7 +87,7 @@ export default function MaintenanceClient() {
 
         <div className="flex items-center gap-2">
           {/* View toggle */}
-          <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden text-xs">
+          <div className="flex items-center border border-gray-200 rounded overflow-hidden text-xs">
             <button
               onClick={() => setView('kanban')}
               className={cn(
@@ -110,7 +110,7 @@ export default function MaintenanceClient() {
 
           <button
             onClick={() => setShowSubmit(true)}
-            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+            className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
           >
             <Plus size={15} /> New request
           </button>
@@ -134,7 +134,7 @@ export default function MaintenanceClient() {
               return (
                 <div key={key} className="flex flex-col gap-3 min-w-0">
                   {/* Column header */}
-                  <div className={cn('flex items-center gap-2 px-3 py-2 rounded-lg', bg)}>
+                  <div className={cn('flex items-center gap-2 px-3 py-2 rounded', bg)}>
                     <Icon size={14} className={color} />
                     <span className={cn('text-xs font-semibold', color)}>{label}</span>
                     <span className={cn(
@@ -276,7 +276,7 @@ function RequestCard({
       </div>
 
       {r.mediaUrls.length > 0 && (
-        <p className="text-xs text-blue-500">{r.mediaUrls.length} attachment{r.mediaUrls.length > 1 ? 's' : ''}</p>
+        <p className="text-xs text-green-600">{r.mediaUrls.length} attachment{r.mediaUrls.length > 1 ? 's' : ''}</p>
       )}
     </button>
   )

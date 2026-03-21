@@ -131,7 +131,7 @@ export default function VisitorsClient() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex-1 min-w-48 flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
+        <div className="flex-1 min-w-48 flex items-center gap-2 bg-white border border-gray-200 rounded px-3 py-2">
           <Search size={14} className="text-gray-400 shrink-0" />
           <input
             type="text"
@@ -144,14 +144,14 @@ export default function VisitorsClient() {
 
         <button
           onClick={() => setShowGate(true)}
-          className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
         >
           <QrCode size={15} /> Gate check-in
         </button>
 
         <button
           onClick={() => setShowRegister(true)}
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
         >
           <Plus size={15} /> Register visitor
         </button>
@@ -265,7 +265,7 @@ export default function VisitorsClient() {
 
                   {/* Access code + cancel */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
-                    <div className="bg-gray-900 text-white text-lg font-mono font-bold px-3 py-1.5 rounded-lg tracking-widest">
+                    <div className="bg-gray-900 text-white text-lg font-mono font-bold px-3 py-1.5 rounded tracking-widest">
                       {v.accessCode}
                     </div>
                     {v.status === 'EXPECTED' && (

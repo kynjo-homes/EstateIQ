@@ -41,14 +41,14 @@ export default function AddFacilityModal({ onClose, onSuccess }: Props) {
             <CalendarCheck size={16} className="text-brand-600" />
             <h2 className="font-semibold text-gray-900">Add facility</h2>
           </div>
-          <button onClick={onClose} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400">
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">
             <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {error && (
-            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-lg">{error}</div>
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
 
           <div>
@@ -58,7 +58,7 @@ export default function AddFacilityModal({ onClose, onSuccess }: Props) {
             <input
               type="text" value={form.name} onChange={set('name')} required
               placeholder="e.g. Swimming Pool, Gym, Clubhouse"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
             />
           </div>
 
@@ -67,7 +67,7 @@ export default function AddFacilityModal({ onClose, onSuccess }: Props) {
             <textarea
               value={form.description} onChange={set('description')} rows={2}
               placeholder="Optional — opening hours, rules, location within estate..."
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
+              className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600 resize-none"
             />
           </div>
 
@@ -77,7 +77,7 @@ export default function AddFacilityModal({ onClose, onSuccess }: Props) {
               <input
                 type="number" value={form.capacity} onChange={set('capacity')}
                 min="1" placeholder="e.g. 20"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
               />
             </div>
             <div>
@@ -85,7 +85,7 @@ export default function AddFacilityModal({ onClose, onSuccess }: Props) {
               <input
                 type="number" value={form.feePerSlot} onChange={set('feePerSlot')}
                 min="0" placeholder="0 = free"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
               />
             </div>
           </div>
@@ -93,13 +93,13 @@ export default function AddFacilityModal({ onClose, onSuccess }: Props) {
           <div className="flex gap-3 pt-1">
             <button
               type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded-lg py-2.5 text-sm font-medium hover:bg-gray-50"
+              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50"
             >
               Cancel
             </button>
             <button
               type="submit" disabled={loading || !form.name.trim()}
-              className="flex-1 bg-brand-600 text-white rounded-lg py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Adding...</> : 'Add facility'}
             </button>
