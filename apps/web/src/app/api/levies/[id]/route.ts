@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   _: Request,
@@ -39,7 +40,7 @@ export async function GET(
 
     return NextResponse.json(levy)
   } catch (err: any) {
-    console.error('[GET /api/levies/:id]', err.message)
+    logger.error('[GET /api/levies/:id]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -69,7 +70,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    console.error('[DELETE /api/levies/:id]', err.message)
+    logger.error('[DELETE /api/levies/:id]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -3,8 +3,11 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
 import { sendInviteEmail } from '@/lib/email'
 import crypto from 'crypto'
+import { getPaginationParams, paginate } from '@/lib/paginate'
+import { logger } from '@/lib/logger'
 
-export async function GET() {
+
+export async function GET(req: Request) {
   try {
     const session = await auth()
     if (!session?.user?.id) {
@@ -19,15 +22,28 @@ export async function GET() {
       return NextResponse.json([])
     }
 
-    const residents = await prisma.resident.findMany({
-      where: { estateId: admin.estateId },
-      include: { unit: true },
-      orderBy: { joinedAt: 'desc' },
-    })
+    const { page, limit } = getPaginationParams(req.url)
+    const where = { estateId: admin.estateId }
 
-    return NextResponse.json(residents)
+    const [residents, total] = await Promise.all([
+      prisma.resident.findMany({
+        where,
+        include: { unit: true },
+        orderBy: { joinedAt: 'desc' },
+        ...paginate(page, limit),
+      }),
+      prisma.resident.count({ where }),
+    ])
+  
+    return NextResponse.json({
+      data:       residents,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      hasMore:    page * limit < total,
+    })
   } catch (err: any) {
-    console.error('[GET /api/residents]', err.message)
+    logger.error('[GET /api/residents]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -107,34 +123,19 @@ export async function POST(req: Request) {
 
     const inviteUrl = `${process.env.NEXTAUTH_URL}/accept-invite?token=${token}`
 
-    console.log('=== INVITE EMAIL DEBUG ===')
-    console.log('Sending to:', email.trim())
-    console.log('Invite URL:', inviteUrl)
-    console.log('Estate:', admin.estate.name)
-    console.log('==========================')
-
-    try {
-      await sendInviteEmail({
-        to:         email.trim(),
-        firstName:  firstName.trim(),
-        estateName: admin.estate.name,
-        inviteUrl,
-      })
-      console.log('Invite email sent successfully')
-    } catch (emailErr: any) {
-      console.error('[POST /api/residents] Failed to send invite email:', emailErr.message)
-      return NextResponse.json(
-        {
-          ...resident,
-          _warning: `Resident created but invite email failed: ${emailErr.message}`,
-        },
-        { status: 201 }
-      )
-    }
+    // Fire and forget — don't await, don't block the response
+    sendInviteEmail({
+      to:         email.trim(),
+      firstName:  firstName.trim(),
+      estateName: admin.estate.name,
+      inviteUrl,
+    }).catch(err => {
+      logger.error('[Background email failed]', { message: err.message, stack: err.stack })
+    })
 
     return NextResponse.json(resident, { status: 201 })
   } catch (err: any) {
-    console.error('[POST /api/residents]', err.message)
+    logger.error('[POST /api/residents]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

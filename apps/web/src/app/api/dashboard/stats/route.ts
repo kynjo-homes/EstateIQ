@@ -12,53 +12,61 @@ export async function GET() {
     const resident = await prisma.resident.findUnique({
       where: { userId: session.user.id },
     })
+
+    console.log('=== DASHBOARD STATS DEBUG ===')
+    console.log('Session user ID:', session.user.id)
+    console.log('Resident found:', resident ? 'yes' : 'no')
+    console.log('Resident role:', resident?.role)
+    console.log('Estate ID:', resident?.estateId)
+    console.log('=============================')
+
     if (!resident) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Resident not found' }, { status: 404 })
     }
 
     const estateId = resident.estateId
 
-    // Run all queries in parallel for speed
     const [
       totalResidents,
       activeResidents,
       totalUnits,
-      openMaintenance,
-      inProgressMaintenance,
-      visitorsToday,
-      activeVisitors,
-      pendingPayments,
-      totalLevies,
+      occupiedUnits,
+      levies,
+      payments,
+      pendingMaintenance,
       openIncidents,
-      criticalIncidents,
+      visitorsToday,
       activePolls,
-      upcomingBookings,
       recentAnnouncements,
-      recentActivity,
+      recentMaintenance,
+      recentVisitors,
     ] = await Promise.all([
-
-      // Residents
+      prisma.resident.count({
+        where: { estateId },
+      }),
       prisma.resident.count({
         where: { estateId, isActive: true },
       }),
-      prisma.resident.count({
-        where: { estateId, isActive: true, role: 'RESIDENT' },
-      }),
-
-      // Units
       prisma.unit.count({
         where: { estateId },
       }),
-
-      // Maintenance
-      prisma.maintenanceRequest.count({
-        where: { estateId, status: 'OPEN' },
+      prisma.unit.count({
+        where: { estateId, residents: { some: { isActive: true } } },
+      }),
+      prisma.levy.findMany({
+        where: { estateId },
+        select: { id: true, amount: true },
+      }),
+      prisma.payment.findMany({
+        where: { levy: { estateId } },
+        select: { status: true, amount: true },
       }),
       prisma.maintenanceRequest.count({
-        where: { estateId, status: 'IN_PROGRESS' },
+        where: { estateId, status: { in: ['OPEN', 'ASSIGNED', 'IN_PROGRESS'] } },
       }),
-
-      // Visitors today
+      prisma.securityIncident.count({
+        where: { estateId, resolvedAt: null },
+      }),
       prisma.visitor.count({
         where: {
           estateId,
@@ -67,196 +75,89 @@ export async function GET() {
           },
         },
       }),
-      prisma.visitor.count({
-        where: { estateId, status: 'ARRIVED' },
-      }),
-
-      // Payments — outstanding levy invoices
-      prisma.payment.count({
-        where: {
-          status: 'PENDING',
-          levy: { estateId },
-        },
-      }),
-
-      // Total levies
-      prisma.levy.count({
-        where: { estateId },
-      }),
-
-      // Incidents
-      prisma.securityIncident.count({
-        where: { estateId, resolvedAt: null },
-      }),
-      prisma.securityIncident.count({
-        where: { estateId, resolvedAt: null, severity: 'CRITICAL' },
-      }),
-
-      // Active polls
       prisma.poll.count({
-        where: { estateId, endsAt: { gt: new Date() } },
-      }),
-
-      // Upcoming facility bookings
-      prisma.facilityBooking.count({
         where: {
-          status: 'CONFIRMED',
-          startTime: { gt: new Date() },
-          facility: { estateId },
+          estateId,
+          endsAt: { gt: new Date() },
         },
       }),
-
-      // Recent announcements (last 3)
       prisma.announcement.findMany({
-        where: { estateId },
+        where:   { estateId },
         orderBy: { createdAt: 'desc' },
-        take: 3,
-        select: { id: true, title: true, priority: true, createdAt: true },
+        take:    3,
+        select:  { id: true, title: true, createdAt: true },
       }),
-
-      // Recent activity feed (last 8 events across all models)
-      buildRecentActivity(estateId),
+      prisma.maintenanceRequest.findMany({
+        where:   { estateId },
+        orderBy: { createdAt: 'desc' },
+        take:    3,
+        select:  { id: true, title: true, createdAt: true, status: true },
+      }),
+      prisma.visitor.findMany({
+        where:   { estateId },
+        orderBy: { createdAt: 'desc' },
+        take:    3,
+        select:  { id: true, name: true, createdAt: true, status: true },
+      }),
     ])
 
-    // Outstanding dues amount
-    const outstandingDues = await prisma.payment.aggregate({
-      where: {
-        status: 'PENDING',
-        levy: { estateId },
-      },
-      _sum: { amount: true },
-    })
+    console.log('=== QUERY RESULTS ===')
+    console.log('Total residents:', totalResidents)
+    console.log('Total units:', totalUnits)
+    console.log('Levies count:', levies.length)
+    console.log('Payments count:', payments.length)
+    console.log('Visitors today:', visitorsToday)
+    console.log('====================')
 
-    // Collected dues amount
-    const collectedDues = await prisma.payment.aggregate({
-      where: {
-        status: 'PAID',
-        levy: { estateId },
-      },
-      _sum: { amount: true },
-    })
+    const totalLevies      = levies.length
+    const paidPayments     = payments.filter(p => p.status === 'PAID')
+    const totalCollected   = paidPayments.reduce((s, p) => s + p.amount, 0)
+    const totalExpected    = payments.reduce((s, p) => s + p.amount, 0)
+    const totalOutstanding = totalExpected - totalCollected
+    const collectionRate   = totalExpected > 0
+      ? Math.round((totalCollected / totalExpected) * 100)
+      : 0
+
+    const recentActivity = [
+      ...recentAnnouncements.map(a => ({
+        id:        a.id,
+        type:      'announcement',
+        message:   `New announcement: ${a.title}`,
+        createdAt: a.createdAt.toISOString(),
+      })),
+      ...recentMaintenance.map(m => ({
+        id:        m.id,
+        type:      'maintenance',
+        message:   `Maintenance request: ${m.title} — ${m.status.toLowerCase()}`,
+        createdAt: m.createdAt.toISOString(),
+      })),
+      ...recentVisitors.map(v => ({
+        id:        v.id,
+        type:      'visitor',
+        message:   `Visitor ${v.name} — ${v.status.toLowerCase()}`,
+        createdAt: v.createdAt.toISOString(),
+      })),
+    ]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 8)
 
     return NextResponse.json({
-      residents: {
-        total:    totalResidents,
-        active:   activeResidents,
-        units:    totalUnits,
-      },
-      maintenance: {
-        open:       openMaintenance,
-        inProgress: inProgressMaintenance,
-        total:      openMaintenance + inProgressMaintenance,
-      },
-      visitors: {
-        today:   visitorsToday,
-        arrived: activeVisitors,
-      },
-      finances: {
-        outstanding:       outstandingDues._sum.amount ?? 0,
-        collected:         collectedDues._sum.amount   ?? 0,
-        pendingInvoices:   pendingPayments,
-        totalLevies,
-      },
-      incidents: {
-        open:     openIncidents,
-        critical: criticalIncidents,
-      },
-      polls: {
-        active: activePolls,
-      },
-      bookings: {
-        upcoming: upcomingBookings,
-      },
-      recentAnnouncements,
+      totalResidents,
+      activeResidents,
+      totalUnits,
+      occupiedUnits,
+      totalLevies,
+      totalCollected,
+      totalOutstanding,
+      collectionRate,
+      pendingMaintenance,
+      openIncidents,
+      visitorsToday,
+      activePolls,
       recentActivity,
     })
   } catch (err: any) {
-    console.error('[GET /api/dashboard/stats]', err.message)
+    console.error('[GET /api/dashboard/stats]', err.message, err.stack)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
-
-// Builds a unified recent activity feed from multiple tables
-async function buildRecentActivity(estateId: string) {
-  const [
-    announcements,
-    visitors,
-    maintenance,
-    incidents,
-    payments,
-  ] = await Promise.all([
-    prisma.announcement.findMany({
-      where: { estateId },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { title: true, createdAt: true, priority: true },
-    }),
-    prisma.visitor.findMany({
-      where: { estateId, status: { in: ['ARRIVED', 'EXPECTED'] } },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { name: true, status: true, createdAt: true },
-    }),
-    prisma.maintenanceRequest.findMany({
-      where: { estateId },
-      orderBy: { createdAt: 'desc' },
-      take: 3,
-      select: { title: true, status: true, priority: true, createdAt: true },
-    }),
-    prisma.securityIncident.findMany({
-      where: { estateId },
-      orderBy: { createdAt: 'desc' },
-      take: 2,
-      select: { title: true, severity: true, createdAt: true },
-    }),
-    prisma.payment.findMany({
-      where: { status: 'PAID', levy: { estateId } },
-      orderBy: { paidAt: 'desc' },
-      take: 3,
-      include: { levy: { select: { title: true } } },
-    }),
-  ])
-
-  const feed: { type: string; text: string; time: Date; color: string }[] = []
-
-  announcements.forEach(a => feed.push({
-    type:  'announcement',
-    text:  `New announcement: ${a.title}`,
-    time:  a.createdAt,
-    color: a.priority === 'URGENT' ? 'red' : a.priority === 'HIGH' ? 'amber' : 'blue',
-  }))
-
-  visitors.forEach(v => feed.push({
-    type:  'visitor',
-    text:  v.status === 'ARRIVED' ? `${v.name} arrived at the gate` : `${v.name} expected as visitor`,
-    time:  v.createdAt,
-    color: 'green',
-  }))
-
-  maintenance.forEach(m => feed.push({
-    type:  'maintenance',
-    text:  `Maintenance request: ${m.title}`,
-    time:  m.createdAt,
-    color: m.priority === 'EMERGENCY' ? 'red' : m.priority === 'HIGH' ? 'amber' : 'gray',
-  }))
-
-  incidents.forEach(i => feed.push({
-    type:  'incident',
-    text:  `Security incident reported: ${i.title}`,
-    time:  i.createdAt,
-    color: i.severity === 'CRITICAL' ? 'red' : i.severity === 'HIGH' ? 'orange' : 'amber',
-  }))
-
-  payments.forEach(p => feed.push({
-    type:  'payment',
-    text:  `Payment received for ${p.levy.title}`,
-    time:  p.paidAt ?? p.createdAt,
-    color: 'green',
-  }))
-
-  // Sort all events by time descending, return latest 8
-  return feed
-    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-    .slice(0, 8)
-    .map(item => ({ ...item, time: item.time.toISOString() }))
 }

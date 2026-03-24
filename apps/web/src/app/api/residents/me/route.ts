@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -18,6 +19,7 @@ export async function GET() {
         role: true,
         estateId: true,
         unit: { select: { number: true, block: true } },
+        estate: { select: { name: true } },
       },
     })
 
@@ -27,7 +29,10 @@ export async function GET() {
 
     return NextResponse.json(resident)
   } catch (err) {
-    console.error('[GET /api/residents/me]', err)
+    logger.error('[GET /api/residents/me]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

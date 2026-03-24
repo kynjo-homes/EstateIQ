@@ -236,7 +236,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
               </p>
               <div className="flex flex-wrap gap-2">
                 {request.mediaUrls.map((url, i) => (
-                  
+                  <a
                     key={i}
                     href={url}
                     target="_blank"

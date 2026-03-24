@@ -9,6 +9,7 @@ interface ResidentProfile {
   role:      string
   estateId:  string
   unit:      { number: string; block: string | null } | null
+  estate?:   { name: string }
 }
 
 interface ResidentContextType {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
   try {
@@ -28,7 +29,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json(visitor)
   } catch (err) {
-    console.error('[POST /api/visitors/checkout]', err)
+    logger.error('[POST /api/visitors/checkout]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

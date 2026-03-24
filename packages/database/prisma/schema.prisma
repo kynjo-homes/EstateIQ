@@ -15,7 +15,9 @@ model AuthUser {
   email        String   @unique
   passwordHash String?
   image        String?
-  createdAt    DateTime @default(now())
+  consentGiven     Boolean   @default(false)
+  consentGivenAt   DateTime?
+  createdAt        DateTime  @default(now())
 }
 
 model Estate {
@@ -24,11 +26,9 @@ model Estate {
   slug        String   @unique
   address     String?
   logoUrl     String?
-  plan        Plan     @default(FREE)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
   units              Unit[]
   residents          Resident[]
   announcements      Announcement[]
@@ -40,6 +40,11 @@ model Estate {
   incidents          SecurityIncident[]
   vehicles           Vehicle[]
   scanLogs           ScanLog[]
+  plan                   Plan               @default(STARTER)
+  subscriptionStatus     SubscriptionStatus @default(ACTIVE)
+  subscriptionStartedAt  DateTime?
+  subscriptionExpiresAt  DateTime?
+  paystackReference      String?
 }
 
 // ─── UNITS & RESIDENTS ────────────────────────────────────
@@ -50,7 +55,6 @@ model Unit {
   number    String
   block     String?
   type      String? // e.g. "3 bedroom duplex"
-
   residents Resident[]
   payments  Payment[]
 }
@@ -70,12 +74,14 @@ model Resident {
   avatarUrl String?
   isActive  Boolean  @default(true)
   joinedAt  DateTime @default(now())
-
   payments  Payment[]
   visitors  Visitor[]
   bookings  FacilityBooking[]
   votes     Vote[]
   vehicles  Vehicle[]
+  @@index([estateId])
+  @@index([userId])
+  @@index([estateId, isActive])
 }
 
 // ─── ANNOUNCEMENTS ────────────────────────────────────────
@@ -87,6 +93,7 @@ model Announcement {
   body      String
   priority  AnnouncementPriority @default(NORMAL)
   createdAt DateTime           @default(now())
+  @@index([estateId, createdAt(sort: Desc)])
 }
 
 // ─── DUES & LEVIES ────────────────────────────────────────
@@ -100,7 +107,6 @@ model Levy {
   currency    String   @default("NGN")
   dueDate     DateTime
   createdAt   DateTime @default(now())
-
   payments    Payment[]
 }
 
@@ -118,6 +124,9 @@ model Payment {
   reference   String?       @unique
   paidAt      DateTime?
   createdAt   DateTime      @default(now())
+  @@index([levyId])
+  @@index([residentId])
+  @@index([status])
 }
 
 // ─── VISITOR MANAGEMENT ───────────────────────────────────
@@ -136,6 +145,9 @@ model Visitor {
   arrivedAt   DateTime?
   exitedAt    DateTime?
   createdAt   DateTime      @default(now())
+  @@index([estateId, status])
+  @@index([residentId])
+  @@index([accessCode])
 }
 
 // ─── MAINTENANCE ──────────────────────────────────────────
@@ -153,6 +165,8 @@ model MaintenanceRequest {
   assignedTo  String?
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+  @@index([estateId, status])
+  @@index([submittedBy])
 }
 
 // ─── FACILITIES ───────────────────────────────────────────
@@ -164,7 +178,6 @@ model Facility {
   description String?
   capacity    Int?
   feePerSlot  Float    @default(0)
-
   bookings    FacilityBooking[]
 }
 
@@ -190,7 +203,6 @@ model Poll {
   endsAt      DateTime
   isAnonymous Boolean  @default(false)
   createdAt   DateTime @default(now())
-
   votes       Vote[]
 }
 
@@ -202,7 +214,6 @@ model Vote {
   resident    Resident @relation(fields: [residentId], references: [id])
   optionIndex Int
   createdAt   DateTime @default(now())
-
   @@unique([pollId, residentId])
 }
 
@@ -230,6 +241,7 @@ model InviteToken {
   usedAt     DateTime?
   expiresAt  DateTime
   createdAt  DateTime @default(now())
+  @@index([email])
 }
 
 model Vehicle {
@@ -246,7 +258,8 @@ model Vehicle {
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
+  @@index([estateId])
+  @@index([residentId])
   scanLogs    ScanLog[]
 }
 
@@ -261,6 +274,8 @@ model ScanLog {
   scannedAt   DateTime    @default(now())
   location    String?
   scannedBy   String?
+  @@index([vehicleId])
+  @@index([estateId, scannedAt(sort: Desc)])
 }
 
 // ─── ENUMS ────────────────────────────────────────────────
@@ -271,12 +286,6 @@ enum ScanOutcome {
   BLOCKED
 }
 
-enum Plan {
-  FREE
-  BASIC
-  PRO
-  ENTERPRISE
-}
 
 enum Role {
   SUPER_ADMIN
@@ -332,4 +341,17 @@ enum IncidentSeverity {
   MEDIUM
   HIGH
   CRITICAL
+}
+
+enum Plan {
+  STARTER
+  PROFESSIONAL
+  CUSTOM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+  PENDING_PAYMENT
 }

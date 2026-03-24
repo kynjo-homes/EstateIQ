@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Building2, User, Home, CheckCircle2, ChevronRight, ChevronLeft, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -10,19 +10,33 @@ const STEPS = [
   { id: 3, label: 'First unit',   icon: Home },
 ]
 
-interface Props { userName: string }
+function splitDisplayName(name: string) {
+  const parts = name.trim().split(/\s+/)
+  return {
+    firstName: parts[0] ?? '',
+    lastName:  parts.slice(1).join(' '),
+  }
+}
 
-export default function OnboardingWizard({ userName }: Props) {
+interface Props {
+  userName?: string
+}
+
+export default function OnboardingWizard({ userName = '' }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const plan = searchParams.get('plan') ?? 'STARTER'
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [slugStatus, setSlugStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle')
 
+  const { firstName: initialFirst, lastName: initialLast } = splitDisplayName(userName)
+
   const [form, setForm] = useState({
     estateName: '', slug: '', address: '',
-    firstName: userName.split(' ')[0] ?? '',
-    lastName:  userName.split(' ')[1] ?? '',
+    firstName: initialFirst,
+    lastName:  initialLast,
     phone: '',
     unitNumber: '', unitBlock: '',
   })
@@ -54,7 +68,7 @@ export default function OnboardingWizard({ userName }: Props) {
     const res = await fetch('/api/onboarding', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify({...form, plan}),
     })
 
     const data = await res.json()
@@ -64,7 +78,11 @@ export default function OnboardingWizard({ userName }: Props) {
       return
     }
 
-    router.push('/dashboard')
+    if (plan === 'PROFESSIONAL') {
+      router.push('/subscribe')
+    } else {
+      router.push(`/${form.slug}`)
+    }
   }
 
   function canProceed() {

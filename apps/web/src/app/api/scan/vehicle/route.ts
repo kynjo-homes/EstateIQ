@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
+import { rateLimit } from '@/lib/rateLimit'
 
 export async function GET(req: Request) {
+
+
+  const limited = rateLimit(req as any, { limit: 60, windowMs: 60 * 1000 })
+  if (limited) return limited
   try {
     const { searchParams } = new URL(req.url)
     const token    = searchParams.get('token')
@@ -108,7 +114,7 @@ export async function GET(req: Request) {
       scannedAt: new Date().toISOString(),
     })
   } catch (err: any) {
-    console.error('[GET /api/scan/vehicle]', err.message)
+    logger.error('[GET /api/scan/vehicle]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

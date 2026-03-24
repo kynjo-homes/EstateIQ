@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function POST(
   req: Request,
@@ -87,7 +88,7 @@ export async function POST(
 
     return NextResponse.json(booking, { status: 201 })
   } catch (err: any) {
-    console.error('[POST /api/facilities/:id/bookings]', err.message)
+    logger.error('[POST /api/facilities/:id/bookings]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function PATCH(
   req: Request,
@@ -31,7 +32,7 @@ export async function PATCH(
 
     return NextResponse.json(incident)
   } catch (err: any) {
-    console.error('[PATCH /api/incidents/:id]', err.message)
+    logger.error('[PATCH /api/incidents/:id]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -60,7 +61,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    console.error('[DELETE /api/incidents/:id]', err.message)
+    logger.error('[DELETE /api/incidents/:id]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

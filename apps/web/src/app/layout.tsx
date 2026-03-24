@@ -1,5 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { validateEnv } from '@/lib/env'
+
+// Runs at build/startup time on the server
+if (typeof window === 'undefined') {
+  validateEnv()
+}
 
 export const metadata: Metadata = {
   title: 'EstateIQ',

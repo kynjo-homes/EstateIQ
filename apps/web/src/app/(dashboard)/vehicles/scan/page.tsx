@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { CheckCircle2, AlertTriangle, XCircle, Loader2, RotateCcw } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
+import SubscriptionGate from '@/components/SubscriptionGate'
 import logo from '@/components/images/logo.png'
 
 type Outcome = 'GRANTED' | 'WARNING' | 'BLOCKED'
@@ -59,6 +60,7 @@ export default function GateScanPage() {
   }, [result])
 
   return (
+    <SubscriptionGate feature="vehicleQR">
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6">
 
       {/* Header */}
@@ -143,5 +145,6 @@ export default function GateScanPage() {
         EstateIQ · Vehicle Access Control
       </p>
     </div>
+    </SubscriptionGate>
   )
 }

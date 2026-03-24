@@ -7,6 +7,7 @@ import {
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import { useSSE } from '@/hooks/useSSE'
+import { useResident } from '@/context/ResidentContext'
 import RegisterVisitorModal from './RegisterVisitorModal'
 import GateCheckinPanel from './GateCheckinPanel'
 import VisitorToast from './VisitorToast'
@@ -46,6 +47,9 @@ const STATUS_ICONS: Record<VisitorStatus, any> = {
 }
 
 export default function VisitorsClient() {
+  const { profile } = useResident()
+  const showGateCheckin = profile != null && profile.role !== 'RESIDENT'
+
   const [visitors, setVisitors]           = useState<Visitor[]>([])
   const [filtered, setFiltered]           = useState<Visitor[]>([])
   const [loading, setLoading]             = useState(true)
@@ -142,12 +146,14 @@ export default function VisitorsClient() {
           />
         </div>
 
-        <button
-          onClick={() => setShowGate(true)}
-          className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
-        >
-          <QrCode size={15} /> Gate check-in
-        </button>
+        {showGateCheckin && (
+          <button
+            onClick={() => setShowGate(true)}
+            className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            <QrCode size={15} /> Gate check-in
+          </button>
+        )}
 
         <button
           onClick={() => setShowRegister(true)}
@@ -291,7 +297,7 @@ export default function VisitorsClient() {
         />
       )}
 
-      {showGate && (
+      {showGateCheckin && showGate && (
         <GateCheckinPanel
           onClose={() => setShowGate(false)}
           onCheckin={() => load()}

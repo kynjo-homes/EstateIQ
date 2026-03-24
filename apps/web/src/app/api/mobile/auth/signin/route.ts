@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@estateiq/database'
 import bcrypt from 'bcryptjs'
 import { SignJWT } from 'jose'
+import { logger } from '@/lib/logger'
 
 const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET!)
 
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
       },
     })
   } catch (err: any) {
-    console.error('[POST /api/mobile/auth/signin]', err.message)
+    logger.error('[POST /api/mobile/auth/signin]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

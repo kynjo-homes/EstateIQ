@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function PATCH(
   _: Request,
@@ -31,7 +32,7 @@ export async function PATCH(
 
     return NextResponse.json(booking)
   } catch (err: any) {
-    console.error('[PATCH /api/facilities/bookings/:bookingId]', err.message)
+    logger.error('[PATCH /api/facilities/bookings/:bookingId]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

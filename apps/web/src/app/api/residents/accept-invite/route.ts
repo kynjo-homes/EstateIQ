@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@estateiq/database'
 import bcrypt from 'bcryptjs'
+import { logger } from '@/lib/logger'
 
 // GET — validate token before showing the form
 export async function GET(req: Request) {
@@ -14,9 +15,6 @@ export async function GET(req: Request) {
 
     const invite = await prisma.inviteToken.findUnique({
       where: { token },
-      include: {
-        // we need the resident info to show on the form
-      },
     })
 
     if (!invite) {
@@ -31,7 +29,9 @@ export async function GET(req: Request) {
 
     const resident = await prisma.resident.findUnique({
       where: { id: invite.residentId },
-      include: { estate: { select: { name: true } } },
+      include: {
+        estate: { select: { name: true, slug: true, address: true } },
+      },
     })
 
     return NextResponse.json({
@@ -40,9 +40,11 @@ export async function GET(req: Request) {
       firstName:  resident?.firstName,
       lastName:   resident?.lastName,
       estateName: resident?.estate?.name,
+      estateSlug: resident?.estate?.slug,
+      address:    resident?.estate?.address,
     })
   } catch (err: any) {
-    console.error('[GET /api/residents/accept-invite]', err.message)
+    logger.error('[GET /api/residents/accept-invite]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -78,13 +80,15 @@ export async function POST(req: Request) {
     const passwordHash = await bcrypt.hash(password, 12)
 
     await prisma.$transaction(async tx => {
-      // Set the password on their AuthUser
       await tx.authUser.update({
         where: { email: invite.email },
-        data:  { passwordHash },
+        data:  {
+          passwordHash,
+          consentGiven:   true,
+          consentGivenAt: new Date(),
+        },
       })
-
-      // Mark the token as used
+    
       await tx.inviteToken.update({
         where: { token },
         data:  { usedAt: new Date() },
@@ -93,7 +97,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    console.error('[POST /api/residents/accept-invite]', err.message)
+    logger.error('[POST /api/residents/accept-invite]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

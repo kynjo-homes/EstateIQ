@@ -47,5 +47,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/sign-in',
     newUser: '/onboarding',
   },
-  session: { strategy: 'jwt' },
+  session: {
+    strategy:    'jwt',
+    maxAge:      60 * 60 * 24 * 7,  // 7 days
+    updateAge:   60 * 60 * 24,       // refresh token daily if active
+  },
+
+  cookies: {
+    sessionToken: {
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path:     '/',
+        secure:   process.env.NODE_ENV === 'production',
+      },
+    },
+  },
 })

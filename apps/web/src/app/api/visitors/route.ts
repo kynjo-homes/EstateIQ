@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 function generateAccessCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
@@ -40,7 +41,10 @@ export async function GET() {
 
     return NextResponse.json(visitors)
   } catch (err) {
-    console.error('[GET /api/visitors]', err)
+    logger.error('[GET /api/visitors]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -100,7 +104,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json(visitor, { status: 201 })
   } catch (err) {
-    console.error('[POST /api/visitors]', err)
+    logger.error('[POST /api/visitors]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

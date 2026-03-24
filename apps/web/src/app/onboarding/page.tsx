@@ -1,17 +1,25 @@
-import { auth } from '@/lib/auth'
+import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { prisma } from '@estateiq/database'
+import { auth } from '@/lib/auth'
 import OnboardingWizard from './OnboardingWizard'
 
 export default async function OnboardingPage() {
   const session = await auth()
-  if (!session?.user?.id) redirect('/sign-in')
+  if (!session?.user) {
+    redirect('/sign-in?callbackUrl=/onboarding')
+  }
 
-  // If already onboarded, send to dashboard
-  const resident = await prisma.resident.findUnique({
-    where: { userId: session.user.id },
-  })
-  if (resident) redirect('/dashboard')
+  const userName = session.user.name ?? ''
 
-  return <OnboardingWizard userName={session.user.name ?? ''} />
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="w-8 h-8 rounded-full border-2 border-green-600 border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <OnboardingWizard userName={userName} />
+    </Suspense>
+  )
 }

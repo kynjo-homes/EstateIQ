@@ -67,9 +67,13 @@ module.exports = {
       },
       borderRadius: {
         DEFAULT: '4px',
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+        none: '0',
+        sm: '4px',
+        md: '4px',
+        lg: '4px',
+        xl: '4px',
+        '2xl': '4px',
+        full: '9999px',
       },
       keyframes: {
         'accordion-down': {

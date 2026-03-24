@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
 import { sendInviteEmail } from '@/lib/email'
 import crypto from 'crypto'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
   try {
@@ -64,16 +65,19 @@ export async function POST(req: Request) {
 
     const inviteUrl = `${process.env.NEXTAUTH_URL}/accept-invite?token=${token}`
 
-    await sendInviteEmail({
-      to:          resident.email,
-      firstName:   resident.firstName,
-      estateName:  admin.estate.name,
+    // Fire and forget — don't await, don't block the response
+    sendInviteEmail({
+      to:         resident.email,
+      firstName:  resident.firstName,
+      estateName: admin.estate.name,
       inviteUrl,
+    }).catch(err => {
+      logger.error('[Background email failed]', { message: err.message, stack: err.stack })
     })
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    console.error('[POST /api/residents/invite]', err.message)
+    logger.error('[POST /api/residents/invite]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,14 +1,17 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function POST(req: Request) {
   const session = await auth()
-  if (!session?.user?.id) {
+  const userId = session?.user?.id
+  const email = session?.user?.email
+  if (!userId || !email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { estateName, slug, address, firstName, lastName, phone, unitNumber, unitBlock } =
+  const { estateName, slug, address, firstName, lastName, phone, unitNumber, unitBlock, plan } =
     await req.json()
 
   // Validate slug format
@@ -30,7 +33,7 @@ export async function POST(req: Request) {
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create the estate
       const estate = await tx.estate.create({
-        data: { name: estateName, slug, address },
+        data: { name: estateName, slug, address, plan: plan ?? 'STARTER', subscriptionStatus: plan === 'PROFESSIONAL' ? 'PENDING_PAYMENT' : 'ACTIVE', },
       })
 
       // 2. Create the first unit
@@ -42,12 +45,12 @@ export async function POST(req: Request) {
       const resident = await tx.resident.create({
         data: {
           estateId: estate.id,
-          userId: session.user.id,
+          userId,
           unitId: unit.id,
           role: 'ADMIN',
           firstName,
           lastName,
-          email: session.user.email!,
+          email,
           phone: phone || null,
         },
       })
@@ -57,7 +60,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result, { status: 201 })
   } catch (err) {
-    console.error('Onboarding error:', err)
+    logger.error('[POST /api/onboarding]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
   }
 }

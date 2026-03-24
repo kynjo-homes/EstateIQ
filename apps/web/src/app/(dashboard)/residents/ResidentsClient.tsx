@@ -41,9 +41,10 @@ export default function ResidentsClient() {
   async function load() {
     setLoading(true)
     const res  = await fetch('/api/residents')
-    const data = await res.json()
-    setResidents(data)
-    setFiltered(data)
+    const json = await res.json()
+    const list = Array.isArray(json) ? json : (json?.data ?? [])
+    setResidents(list)
+    setFiltered(list)
     setLoading(false)
   }
 

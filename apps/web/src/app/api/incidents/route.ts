@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -21,7 +22,7 @@ export async function GET() {
 
     return NextResponse.json(incidents)
   } catch (err: any) {
-    console.error('[GET /api/incidents]', err.message)
+    logger.error('[GET /api/incidents]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -63,7 +64,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(incident, { status: 201 })
   } catch (err: any) {
-    console.error('[POST /api/incidents]', err.message)
+    logger.error('[POST /api/incidents]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

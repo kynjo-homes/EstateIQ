@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function DELETE(
   _: Request,
@@ -27,7 +28,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
-    console.error('[DELETE /api/polls/:id]', err.message)
+    logger.error('[DELETE /api/polls/:id]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

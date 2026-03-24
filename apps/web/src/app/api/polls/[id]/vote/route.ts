@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function POST(
   req: Request,
@@ -79,7 +80,7 @@ export async function POST(
 
     return NextResponse.json(vote, { status: 201 })
   } catch (err: any) {
-    console.error('[POST /api/polls/:id/vote]', err.message, err.meta)
+    logger.error('[POST /api/polls/:id/vote]', { message: err.message, stack: err.stack, meta: err.meta })
     return NextResponse.json(
       { error: err.message ?? 'Internal server error' },
       { status: 500 }

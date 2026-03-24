@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function GET(
   _: Request,
@@ -28,7 +29,7 @@ export async function GET(
 
     return NextResponse.json(logs)
   } catch (err: any) {
-    console.error('[GET /api/vehicles/:id/logs]', err.message)
+    logger.error('[GET /api/vehicles/:id/logs]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

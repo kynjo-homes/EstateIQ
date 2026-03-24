@@ -2,377 +2,341 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   Users, CreditCard, ShieldCheck, Wrench,
-  TrendingUp, AlertTriangle, BarChart2, CalendarCheck,
-  Megaphone, Clock, RefreshCw, Building2, DollarSign,
+  TrendingUp, Bell, CheckCircle2, Clock,
+  ArrowRight, RefreshCw,
 } from 'lucide-react'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
-import { useSession } from 'next-auth/react'
+import { useResident } from '@/context/ResidentContext'
 
 interface Stats {
-  residents:  { total: number; active: number; units: number }
-  maintenance: { open: number; inProgress: number; total: number }
-  visitors:   { today: number; arrived: number }
-  finances:   { outstanding: number; collected: number; pendingInvoices: number; totalLevies: number }
-  incidents:  { open: number; critical: number }
-  polls:      { active: number }
-  bookings:   { upcoming: number }
-  recentAnnouncements: { id: string; title: string; priority: string; createdAt: string }[]
-  recentActivity: { type: string; text: string; time: string; color: string }[]
+  totalResidents:   number
+  activeResidents:  number
+  totalUnits:       number
+  occupiedUnits:    number
+  totalLevies:      number
+  totalCollected:   number
+  totalOutstanding: number
+  collectionRate:   number
+  pendingMaintenance: number
+  openIncidents:    number
+  visitorsToday:    number
+  activePolls:      number
+  recentActivity:   Activity[]
 }
 
-const ACTIVITY_COLORS: Record<string, string> = {
-  red:    'bg-red-500',
-  amber:  'bg-amber-500',
-  blue:   'bg-brand-500',
-  green:  'bg-green-500',
-  gray:   'bg-gray-400',
-  orange: 'bg-orange-500',
-}
-
-const PRIORITY_COLORS: Record<string, string> = {
-  URGENT: 'bg-red-500',
-  HIGH:   'bg-amber-500',
-  NORMAL: 'bg-green-400',
-  LOW:    'bg-gray-300',
-}
-
-function fmt(n: number) {
-  return '₦' + n.toLocaleString('en-NG', { maximumFractionDigits: 0 })
-}
-
-function timeAgo(iso: string) {
-  const ms   = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(ms / 60000)
-  if (mins < 1)  return 'just now'
-  if (mins < 60) return `${mins}m ago`
-  const hrs = Math.floor(mins / 60)
-  if (hrs  < 24) return `${hrs}h ago`
-  return `${Math.floor(hrs / 24)}d ago`
-}
-
-function getTimeOfDay() {
-  const h = new Date().getHours()
-  if (h < 12) return 'morning'
-  if (h < 17) return 'afternoon'
-  return 'evening'
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-      <div className="bg-gray-100 rounded-xl h-28 animate-pulse" />
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-gray-100 rounded-xl h-24 animate-pulse" />
-        ))}
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="bg-gray-100 rounded-xl h-48 animate-pulse" />
-        <div className="bg-gray-100 rounded-xl h-48 animate-pulse lg:col-span-2" />
-      </div>
-    </div>
-  )
+interface Activity {
+  id:        string
+  type:      string
+  message:   string
+  createdAt: string
 }
 
 export default function DashboardClient() {
-  const { data: session } = useSession()
-  const [stats, setStats]           = useState<Stats | null>(null)
-  const [loading, setLoading]       = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
+  const { profile, isAdmin }    = useResident()
+  const isSecurity              = profile?.role === 'SECURITY'
+  const [stats, setStats]       = useState<Stats | null>(null)
+  const [loading, setLoading]   = useState(true)
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const load = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true)
-    else setRefreshing(true)
-
+  const load = useCallback(async () => {
     const { data } = await fetchJson<Stats>('/api/dashboard/stats')
     if (data) {
       setStats(data)
       setLastUpdated(new Date())
     }
-
     setLoading(false)
-    setRefreshing(false)
   }, [])
 
   useEffect(() => {
     load()
-    const interval = setInterval(() => load(true), 60000)
+    const interval = setInterval(load, 60000)
     return () => clearInterval(interval)
   }, [load])
 
-  const firstName = session?.user?.name?.split(' ')[0] ?? 'there'
+  function fmt(n: number) {
+    return '₦' + n.toLocaleString('en-NG', { minimumFractionDigits: 0 })
+  }
 
-  if (loading) return <LoadingSkeleton />
-  if (!stats)  return null
+  // ── Stat cards ─────────────────────────────────────────────────────
+  const adminStatCards = [
+    {
+      label: 'Total residents',
+      value: stats?.totalResidents ?? 0,
+      sub:   `${stats?.activeResidents ?? 0} active`,
+      icon:  Users,
+      color: 'bg-blue-50 text-blue-600',
+    },
+    {
+      label: 'Total collected',
+      value: fmt(stats?.totalCollected ?? 0),
+      sub:   `${stats?.collectionRate ?? 0}% collection rate`,
+      icon:  TrendingUp,
+      color: 'bg-green-50 text-green-600',
+    },
+    {
+      label: 'Outstanding dues',
+      value: fmt(stats?.totalOutstanding ?? 0),
+      sub:   `${stats?.totalLevies ?? 0} active levies`,
+      icon:  CreditCard,
+      color: 'bg-amber-50 text-amber-600',
+    },
+    {
+      label: 'Active polls',
+      value: stats?.activePolls ?? 0,
+      sub:   'Open for voting',
+      icon:  CheckCircle2,
+      color: 'bg-purple-50 text-purple-600',
+    },
+  ]
 
-  const collectionTotal = stats.finances.collected + stats.finances.outstanding
-  const collectionPct   = collectionTotal > 0
-    ? Math.round((stats.finances.collected / collectionTotal) * 100)
-    : 0
+  const securityStatCards = [
+    {
+      label: 'Visitors today',
+      value: stats?.visitorsToday ?? 0,
+      sub:   'Registered today',
+      icon:  ShieldCheck,
+      color: 'bg-blue-50 text-blue-600',
+    },
+    {
+      label: 'Open incidents',
+      value: stats?.openIncidents ?? 0,
+      sub:   'Requiring attention',
+      icon:  Bell,
+      color: 'bg-red-50 text-red-600',
+    },
+    {
+      label: 'Pending maintenance',
+      value: stats?.pendingMaintenance ?? 0,
+      sub:   'Awaiting resolution',
+      icon:  Wrench,
+      color: 'bg-amber-50 text-amber-600',
+    },
+    {
+      label: 'Total residents',
+      value: stats?.totalResidents ?? 0,
+      sub:   `${stats?.activeResidents ?? 0} active`,
+      icon:  Users,
+      color: 'bg-green-50 text-green-600',
+    },
+  ]
 
-  const bannerMessage =
-    stats.incidents.critical > 0
-      ? `⚠️ ${stats.incidents.critical} critical incident${stats.incidents.critical > 1 ? 's' : ''} need your attention.`
-      : stats.maintenance.open > 0
-      ? `${stats.maintenance.open} open maintenance request${stats.maintenance.open > 1 ? 's' : ''} awaiting action.`
-      : 'Everything looks good. Here is your estate overview.'
+  const residentStatCards = [
+    {
+      label: 'Visitors today',
+      value: stats?.visitorsToday ?? 0,
+      sub:   'Registered today',
+      icon:  ShieldCheck,
+      color: 'bg-blue-50 text-blue-600',
+    },
+    {
+      label: 'Pending maintenance',
+      value: stats?.pendingMaintenance ?? 0,
+      sub:   'Open requests',
+      icon:  Wrench,
+      color: 'bg-amber-50 text-amber-600',
+    },
+    {
+      label: 'Outstanding dues',
+      value: fmt(stats?.totalOutstanding ?? 0),
+      sub:   'Estate total',
+      icon:  CreditCard,
+      color: 'bg-red-50 text-red-600',
+    },
+    {
+      label: 'Active polls',
+      value: stats?.activePolls ?? 0,
+      sub:   'Open for voting',
+      icon:  CheckCircle2,
+      color: 'bg-purple-50 text-purple-600',
+    },
+  ]
+
+  const statCards = isAdmin    ? adminStatCards    :
+                    isSecurity ? securityStatCards :
+                    residentStatCards
+
+  // ── Quick actions ───────────────────────────────────────────────────
+  const adminQuickActions = [
+    { label: 'Add resident',      href: '/residents',     icon: Users       },
+    { label: 'Create levy',       href: '/levies',        icon: CreditCard  },
+    { label: 'New announcement',  href: '/announcements', icon: Bell        },
+    { label: 'View maintenance',  href: '/maintenance',   icon: Wrench      },
+  ]
+
+  const residentQuickActions = [
+    { label: 'Register visitor',  href: '/visitors',    icon: ShieldCheck },
+    { label: 'Pay dues',          href: '/levies',      icon: CreditCard  },
+    { label: 'Announcements',     href: '/announcements',icon: Bell       },
+    { label: 'Request repair',    href: '/maintenance', icon: Wrench      },
+  ]
+
+  const quickActions = isAdmin ? adminQuickActions : residentQuickActions
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-5">
+    <div className="flex-1 overflow-y-auto p-6 space-y-6">
 
-      {/* ── Welcome banner ─────────────────────────────── */}
-      <div className="bg-brand-600 rounded-xl p-6 flex items-center justify-between">
+      {/* Welcome + refresh */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-white mb-1">
-            Good {getTimeOfDay()}, {firstName} 👋
+          <h2 className="text-lg font-semibold text-gray-900">
+            {isSecurity
+              ? 'Security overview'
+              : isAdmin
+              ? 'Estate overview'
+              : 'My dashboard'
+            }
           </h2>
-          <p className="text-green-100 text-sm">{bannerMessage}</p>
+          {lastUpdated && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              Updated {lastUpdated.toLocaleTimeString('en-NG', {
+                hour: '2-digit', minute: '2-digit',
+              })}
+            </p>
+          )}
         </div>
-        <div className="flex flex-col items-end gap-1 shrink-0">
-          <TrendingUp size={40} className="text-green-400 hidden md:block" />
-          <div className="flex items-center gap-1.5">
-            {lastUpdated && (
-              <span className="text-green-200 text-xs hidden md:block">
-                Updated {timeAgo(lastUpdated.toISOString())}
-              </span>
-            )}
-            <button
-              onClick={() => load(true)}
-              disabled={refreshing}
-              className="text-green-200 hover:text-white transition-colors"
-              title="Refresh stats"
+        <button
+          onClick={load}
+          disabled={loading}
+          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+        >
+          <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
+          Refresh
+        </button>
+      </div>
+
+      {/* Stat cards */}
+      {loading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-white border border-gray-100 rounded-xl p-5 animate-pulse h-24" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {statCards.map(({ label, value, sub, icon: Icon, color }) => (
+            <div
+              key={label}
+              className="bg-white border border-gray-100 rounded-xl p-5 hover:border-gray-200 transition-colors"
             >
-              <RefreshCw size={14} className={cn(refreshing && 'animate-spin')} />
-            </button>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs text-gray-500 mb-1 truncate">{label}</p>
+                  <p className="text-xl font-bold text-gray-900 truncate">{value}</p>
+                  <p className="text-xs text-gray-400 mt-0.5 truncate">{sub}</p>
+                </div>
+                <div className={cn('rounded-lg p-2 shrink-0', color)}>
+                  <Icon size={16} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Dues progress bar — admin only */}
+      {isAdmin && stats && stats.totalCollected + stats.totalOutstanding > 0 && (
+        <div className="bg-white border border-gray-100 rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-sm font-medium text-gray-900">Dues collection progress</p>
+            <p className="text-sm text-gray-500">{stats.collectionRate}%</p>
+          </div>
+          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div
+              className={cn(
+                'h-full rounded-full transition-all duration-700',
+                stats.collectionRate >= 80 ? 'bg-green-500' :
+                stats.collectionRate >= 50 ? 'bg-amber-400' : 'bg-red-400'
+              )}
+              style={{ width: `${stats.collectionRate}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-400 mt-2">
+            <span>{fmt(stats.totalCollected)} collected</span>
+            <span>{fmt(stats.totalOutstanding)} outstanding</span>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* ── Primary stat cards ──────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={cn(
+        'grid gap-5',
+        isSecurity ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3'
+      )}>
 
-        <a href="/residents" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
-          <div className="rounded p-2.5 shrink-0 bg-brand-50 text-brand-600">
-            <Users size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-2xl font-semibold text-gray-900">{stats.residents.total}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Total residents</p>
-            <p className="text-xs text-gray-400">{stats.residents.units} units</p>
-          </div>
-        </a>
-
-        <a href="/levies" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
-          <div className={cn(
-            'rounded p-2.5 shrink-0',
-            stats.finances.outstanding > 0 ? 'bg-amber-50 text-amber-600' : 'bg-green-50 text-green-600'
-          )}>
-            <CreditCard size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-2xl font-semibold text-gray-900 truncate">{fmt(stats.finances.outstanding)}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Outstanding dues</p>
-            <p className="text-xs text-gray-400">{stats.finances.pendingInvoices} unpaid invoice{stats.finances.pendingInvoices !== 1 ? 's' : ''}</p>
-          </div>
-        </a>
-
-        <a href="/visitors" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
-          <div className="rounded p-2.5 shrink-0 bg-green-50 text-green-600">
-            <ShieldCheck size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-2xl font-semibold text-gray-900">{stats.visitors.today}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Visitors today</p>
-            <p className="text-xs text-gray-400">{stats.visitors.arrived} currently inside</p>
-          </div>
-        </a>
-
-        <a href="/maintenance" className="bg-white border border-gray-100 rounded-xl p-5 flex items-center gap-4 hover:border-gray-200 hover:shadow-sm transition-all group">
-          <div className={cn(
-            'rounded p-2.5 shrink-0',
-            stats.maintenance.open > 0 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-          )}>
-            <Wrench size={20} />
-          </div>
-          <div className="min-w-0">
-            <p className="text-2xl font-semibold text-gray-900">{stats.maintenance.open}</p>
-            <p className="text-xs text-gray-500 mt-0.5">Open maintenance</p>
-            <p className="text-xs text-gray-400">{stats.maintenance.inProgress} in progress</p>
-          </div>
-        </a>
-
-      </div>
-
-      {/* ── Secondary stat cards ────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-
-        <a href="/incidents" className={cn(
-          'rounded-xl p-4 flex items-start gap-3 transition-all hover:shadow-sm',
-          stats.incidents.critical > 0
-            ? 'bg-red-50 border border-red-100 hover:border-red-200'
-            : 'bg-white border border-gray-100 hover:border-gray-200'
-        )}>
-          <AlertTriangle size={16} className={cn('mt-0.5 shrink-0', stats.incidents.critical > 0 ? 'text-red-500' : 'text-gray-400')} />
-          <div className="min-w-0">
-            <p className={cn('text-xl font-semibold', stats.incidents.critical > 0 ? 'text-red-700' : 'text-gray-900')}>
-              {stats.incidents.open}
-            </p>
-            <p className={cn('text-xs', stats.incidents.critical > 0 ? 'text-red-600' : 'text-gray-500')}>
-              Security incidents
-            </p>
-            <p className={cn('text-xs', stats.incidents.critical > 0 ? 'text-red-400' : 'text-gray-400')}>
-              {stats.incidents.critical > 0 ? `${stats.incidents.critical} critical` : 'All clear'}
-            </p>
-          </div>
-        </a>
-
-        <a href="/polls" className="bg-white border border-gray-100 rounded-xl p-4 flex items-start gap-3 hover:border-gray-200 hover:shadow-sm transition-all">
-          <BarChart2 size={16} className="text-gray-400 mt-0.5 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xl font-semibold text-gray-900">{stats.polls.active}</p>
-            <p className="text-xs text-gray-500">Active polls</p>
-            <p className="text-xs text-gray-400">Awaiting votes</p>
-          </div>
-        </a>
-
-        <a href="/facilities" className="bg-white border border-gray-100 rounded-xl p-4 flex items-start gap-3 hover:border-gray-200 hover:shadow-sm transition-all">
-          <CalendarCheck size={16} className="text-gray-400 mt-0.5 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xl font-semibold text-gray-900">{stats.bookings.upcoming}</p>
-            <p className="text-xs text-gray-500">Upcoming bookings</p>
-            <p className="text-xs text-gray-400">Confirmed slots</p>
-          </div>
-        </a>
-
-        <a href="/levies" className="bg-white border border-gray-100 rounded-xl p-4 flex items-start gap-3 hover:border-gray-200 hover:shadow-sm transition-all">
-          <DollarSign size={16} className="text-gray-400 mt-0.5 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xl font-semibold text-gray-900 truncate">{fmt(stats.finances.collected)}</p>
-            <p className="text-xs text-gray-500">Total collected</p>
-            <p className="text-xs text-gray-400">
-              {stats.finances.totalLevies} {stats.finances.totalLevies !== 1 ? 'levies' : 'levy'} created
-            </p>
-          </div>
-        </a>
-
-      </div>
-
-      {/* ── Bottom grid ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-
-        {/* Recent announcements + quick actions */}
-        <div className="bg-white border border-gray-100 rounded-xl p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-gray-900 flex items-center gap-2">
-              <Megaphone size={14} className="text-brand-600" />
-              Recent announcements
-            </h3>
-            <a href="/announcements" className="text-xs text-brand-600 hover:text-brand-700">
-              View all
-            </a>
-          </div>
-
-          {stats.recentAnnouncements.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">No announcements yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {stats.recentAnnouncements.map(a => (
-                <div key={a.id} className="flex items-start gap-2.5">
-                  <div className={cn(
-                    'w-1.5 h-1.5 rounded-full mt-1.5 shrink-0',
-                    PRIORITY_COLORS[a.priority] ?? 'bg-gray-300'
-                  )} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-gray-800 font-medium truncate">{a.title}</p>
-                    <p className="text-xs text-gray-400">{timeAgo(a.createdAt)}</p>
+        {/* Quick actions — hidden for security */}
+        {!isSecurity && (
+          <div className="bg-white border border-gray-100 rounded-xl p-5">
+            <p className="text-sm font-medium text-gray-900 mb-4">Quick actions</p>
+            <div className="space-y-2">
+              {quickActions.map(({ label, href, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-gray-50 transition-colors group"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-7 h-7 bg-green-50 rounded-lg flex items-center justify-center group-hover:bg-green-600 transition-colors">
+                      <Icon size={13} className="text-green-600 group-hover:text-white transition-colors" />
+                    </div>
+                    <span className="text-sm text-gray-700">{label}</span>
                   </div>
-                </div>
+                  <ArrowRight size={13} className="text-gray-300 group-hover:text-gray-500 transition-colors" />
+                </Link>
               ))}
             </div>
-          )}
-
-          <div className="mt-5 pt-4 border-t border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-2">Quick actions</p>
-            <div className="space-y-1">
-              <a href="/residents" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
-                <span>Add a resident</span>
-                <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
-              </a>
-              <a href="/announcements" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
-                <span>Create an announcement</span>
-                <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
-              </a>
-              <a href="/levies" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
-                <span>Set up a levy</span>
-                <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
-              </a>
-              <a href="/visitors" className="flex items-center justify-between px-2 py-2 rounded hover:bg-gray-50 text-sm text-gray-600 transition-colors group">
-                <span>Register a visitor</span>
-                <span className="text-gray-300 group-hover:text-gray-500 text-xs">→</span>
-              </a>
-            </div>
           </div>
-        </div>
+        )}
 
         {/* Activity feed */}
-        <div className="bg-white border border-gray-100 rounded-xl p-5 lg:col-span-3">
+        <div className={cn(
+          'bg-white border border-gray-100 rounded-xl p-5',
+          isSecurity ? 'col-span-1' : 'lg:col-span-2'
+        )}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-medium text-gray-900 flex items-center gap-2">
-              <Clock size={14} className="text-gray-400" />
-              Recent activity
-            </h3>
-            <span className="text-xs text-gray-400">Auto-refreshes every 60s</span>
+            <p className="text-sm font-medium text-gray-900">Recent activity</p>
+            <Clock size={14} className="text-gray-300" />
           </div>
 
-          {stats.recentActivity.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <Building2 size={28} className="text-gray-200" />
-              <p className="text-sm text-gray-400">No activity yet.</p>
-              <p className="text-xs text-gray-300">
-                Activity will appear here as your estate gets active.
-              </p>
+          {loading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex gap-3 animate-pulse">
+                  <div className="w-8 h-8 bg-gray-100 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-1.5 pt-1">
+                    <div className="h-3 bg-gray-100 rounded w-3/4" />
+                    <div className="h-2 bg-gray-100 rounded w-1/3" />
+                  </div>
+                </div>
+              ))}
             </div>
+          ) : !stats?.recentActivity?.length ? (
+            <p className="text-sm text-gray-400 text-center py-8">
+              No recent activity yet.
+            </p>
           ) : (
-            <div className="space-y-4">
-              {stats.recentActivity.map((item, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div className={cn(
-                    'w-2 h-2 rounded-full mt-1.5 shrink-0',
-                    ACTIVITY_COLORS[item.color] ?? 'bg-gray-400'
-                  )} />
+            <div className="space-y-3">
+              {stats.recentActivity.map(activity => (
+                <div key={activity.id} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center shrink-0 mt-0.5">
+                    <Bell size={13} className="text-green-600" />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-gray-700">{item.text}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{timeAgo(item.time)}</p>
+                    <p className="text-sm text-gray-700 leading-snug">{activity.message}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      {new Date(activity.createdAt).toLocaleDateString('en-NG', {
+                        day: 'numeric', month: 'short',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           )}
-
-          {/* Dues collection progress */}
-          {stats.finances.totalLevies > 0 && (
-            <div className="mt-5 pt-4 border-t border-gray-100">
-              <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
-                <span>Dues collection progress</span>
-                <span className="font-medium text-gray-700">{fmt(stats.finances.collected)} collected</span>
-              </div>
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-brand-500 rounded-full transition-all duration-700"
-                  style={{ width: `${collectionPct}%` }}
-                />
-              </div>
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
-                <span>{fmt(stats.finances.outstanding)} outstanding</span>
-                <span>{collectionPct}% collected</span>
-              </div>
-            </div>
-          )}
         </div>
-
       </div>
+
     </div>
   )
 }

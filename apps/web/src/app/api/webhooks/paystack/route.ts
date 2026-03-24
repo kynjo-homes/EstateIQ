@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 import crypto from 'crypto'
 
 export async function POST(req: Request) {
@@ -35,11 +36,36 @@ export async function POST(req: Request) {
           },
         })
       }
+
+      // Handle subscription payments
+    if (event.data?.metadata?.type === 'subscription') {
+      const { estateId } = event.data.metadata
+      if (estateId) {
+        const now       = new Date()
+        const expiresAt = new Date(now)
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1) // 1 year from now
+
+        await prisma.estate.update({
+          where: { id: estateId },
+          data: {
+            plan:                  'PROFESSIONAL',
+            subscriptionStatus:    'ACTIVE',
+            subscriptionStartedAt: now,
+            subscriptionExpiresAt: expiresAt,
+          },
+        })
+
+        console.log(`[Webhook] Subscription activated for estate ${estateId}, expires ${expiresAt.toISOString()}`)
+      }
+    }
     }
 
     return NextResponse.json({ received: true })
   } catch (err) {
-    console.error('[POST /api/webhooks/paystack]', err)
+    logger.error('[POST /api/webhooks/paystack]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Webhook error' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
+import { logger } from '@/lib/logger'
 
 export async function GET() {
   try {
@@ -50,7 +51,10 @@ export async function GET() {
 
     return NextResponse.json(enriched)
   } catch (err) {
-    console.error('[GET /api/polls]', err)
+    logger.error('[GET /api/polls]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -102,7 +106,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json(poll, { status: 201 })
   } catch (err) {
-    console.error('[POST /api/polls]', err)
+    logger.error('[POST /api/polls]', {
+      message: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

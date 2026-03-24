@@ -1,71 +1,36 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Check } from "lucide-react";
+import { ArrowRight, CheckCircle2, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { pricingPlans } from "@/lib/pricingPlans";
 import { Button } from "@/components/ui/button";
-
-const plans = [
-  {
-    name: "Starter",
-    price: "Free",
-    period: "",
-    description: "For small estates getting started",
-    features: [
-      "Up to 50 units",
-      "Dues tracking",
-      "Community noticeboard",
-      "Email support",
-    ],
-    cta: "Get Started",
-    highlighted: false,
-  },
-  {
-    name: "Professional",
-    price: "$49",
-    period: "/mo",
-    description: "For growing estates that need control",
-    features: [
-      "Up to 500 units",
-      "Automated billing & reminders",
-      "Maintenance workflows",
-      "Financial reporting",
-      "Visitor management",
-      "Priority support",
-    ],
-    cta: "Start Free Trial",
-    highlighted: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "For multi-estate portfolios",
-    features: [
-      "Unlimited units & estates",
-      "Dedicated account manager",
-      "Custom integrations",
-      "SLA & uptime guarantee",
-      "On-premise deployment option",
-      "Advanced analytics & AI",
-    ],
-    cta: "Contact Sales",
-    highlighted: false,
-  },
-];
 
 const Pricing = () => {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) setVisible(true); },
+      ([entry]) => {
+        if (entry.isIntersecting) setVisible(true);
+      },
       { threshold: 0.15 }
     );
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, []);
+
+  function handleSelect(planId: string) {
+    if (planId === "CUSTOM") {
+      window.location.href =
+        "mailto:sales@estateiq.app?subject=Custom plan enquiry";
+      return;
+    }
+    router.push(`/sign-up?plan=${planId}`);
+  }
 
   return (
     <section id="pricing" className="py-24 md:py-32 bg-secondary" ref={ref}>
@@ -75,56 +40,106 @@ const Pricing = () => {
             Pricing
           </span>
           <h2 className="mt-3 text-3xl md:text-4xl font-bold text-foreground leading-tight">
-            Transparent plans, no hidden fees
+            Simple, transparent pricing
           </h2>
           <p className="mt-4 text-muted-foreground leading-relaxed">
-            Start free and scale as your community grows.
+            Choose the plan that works for your estate. Start free, upgrade when
+            you are ready.
           </p>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-          {plans.map((p, i) => (
+          {pricingPlans.map((plan, i) => (
             <div
-              key={p.name}
-              className={`relative rounded-xl border p-6 flex flex-col ${
-                p.highlighted
+              key={plan.id}
+              className={cn(
+                "relative rounded-xl flex flex-col border p-6",
+                plan.featured
                   ? "border-primary bg-card shadow-xl shadow-primary/10"
-                  : "border-border bg-card"
-              } ${visible ? "reveal-up" : "opacity-0"}`}
+                  : "border-border bg-card",
+                visible ? "reveal-up" : "opacity-0"
+              )}
               style={{ animationDelay: `${i * 100}ms` }}
             >
-              {p.highlighted && (
+              {plan.featured && (
                 <div className="absolute -top-3 left-6 px-3 py-0.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full">
-                  Most Popular
+                  Most popular
                 </div>
               )}
-              <h3 className="font-sans text-lg font-semibold text-foreground">{p.name}</h3>
-              <p className="text-sm text-muted-foreground mt-1">{p.description}</p>
-              <div className="mt-5 mb-6">
-                <span className="text-4xl font-bold text-foreground tabular-nums">{p.price}</span>
-                {p.period && <span className="text-muted-foreground text-sm">{p.period}</span>}
+              <h3 className="font-sans text-lg font-semibold text-foreground">
+                {plan.name}
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {plan.description}
+              </p>
+              <div className="mt-5 mb-4 flex items-baseline gap-1.5">
+                <span
+                  className={cn(
+                    "font-bold text-foreground tabular-nums",
+                    plan.price ? "text-3xl" : "text-2xl"
+                  )}
+                >
+                  {plan.priceLabel}
+                </span>
+                {plan.priceSub ? (
+                  <span className="text-sm text-muted-foreground">
+                    {plan.priceSub}
+                  </span>
+                ) : null}
               </div>
-              <ul className="flex-1 space-y-3 mb-8">
-                {p.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm text-foreground">
-                    <Check size={16} className="text-primary mt-0.5 shrink-0" />
-                    {f}
-                  </li>
+
+              <div className="border-t border-border pt-5 flex-1 space-y-3 mb-6">
+                {plan.features.map(({ label, included }) => (
+                  <div key={label} className="flex items-start gap-2.5">
+                    {included ? (
+                      <CheckCircle2
+                        size={15}
+                        className="text-primary shrink-0 mt-0.5"
+                      />
+                    ) : (
+                      <X size={15} className="text-muted-foreground/40 shrink-0 mt-0.5" />
+                    )}
+                    <span
+                      className={cn(
+                        "text-sm leading-snug",
+                        included
+                          ? "text-foreground"
+                          : "text-muted-foreground/50 line-through"
+                      )}
+                    >
+                      {label}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
+
               <Button
-                className={`w-full active:scale-[0.97] transition-all ${
-                  p.highlighted
+                type="button"
+                onClick={() => handleSelect(plan.id)}
+                className={cn(
+                  "w-full active:scale-[0.97] transition-all flex items-center justify-center gap-2",
+                  plan.featured
                     ? "bg-primary hover:bg-primary-dark text-primary-foreground shadow-md"
                     : "bg-foreground/5 hover:bg-foreground/10 text-foreground"
-                }`}
-                asChild
+                )}
               >
-                <Link href={p.cta === "Contact Sales" ? "/sign-up" : "/sign-up"}>{p.cta}</Link>
+                {plan.cta}
+                <ArrowRight size={14} />
               </Button>
             </div>
           ))}
         </div>
+
+        <p className="mt-12 text-center text-sm text-muted-foreground max-w-2xl mx-auto">
+          All plans include a 7-day trial of Professional features after sign-up.
+          Questions?{" "}
+          <a
+            href="mailto:hello@estateiq.app"
+            className="text-primary hover:underline"
+          >
+            hello@estateiq.app
+          </a>
+        </p>
       </div>
     </section>
   );

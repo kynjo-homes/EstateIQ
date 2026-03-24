@@ -1,6 +1,7 @@
 'use client'
 import { Bell, Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import { useResident } from '@/context/ResidentContext'
 
 interface Props {
   title: string
@@ -8,12 +9,14 @@ interface Props {
 
 export default function Topbar({ title }: Props) {
   const { data: session } = useSession()
+  const { profile } = useResident()
+  const displayTitle = profile?.estate?.name ? `${title} - ${profile.estate.name}` : title
   const initials = session?.user?.name
     ?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ?? 'U'
 
   return (
     <header className="h-16 border-b border-gray-100 bg-white flex items-center justify-between px-6 shrink-0">
-      <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
+      <h1 className="text-lg font-semibold text-gray-900">{displayTitle}</h1>
 
       <div className="flex items-center gap-3">
         {/* Search */}
