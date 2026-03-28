@@ -11,3 +11,5 @@
   NODE_OPTIONS    = "--max-old-space-size=4096"
   NPM_FLAGS       = "--legacy-peer-deps"
   TURBO_TELEMETRY_DISABLED = "1"
+  # next-auth/react inlines NEXTAUTH_URL in client chunks (public site URL). TERMII_SENDER_ID often matches visible SMS sender text.
+  SECRETS_SCAN_OMIT_KEYS = "NEXTAUTH_URL,TERMII_SENDER_ID"
