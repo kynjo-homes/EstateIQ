@@ -5,13 +5,28 @@ import { logger } from '@/lib/logger'
 import { rateLimit } from '@/lib/rateLimit'
 import { getPasswordPolicyErrorMessage, passwordMeetsPolicy } from '@/lib/passwordPolicy'
 
+export const runtime = 'nodejs'
+
 export async function POST(req: Request) {
 
   const limited = rateLimit(req as any, { limit: 5, windowMs: 60 * 1000 })
   if (limited) return limited
 
+  let body: unknown
   try {
-    const { name, email, password, consent, plan } = await req.json()
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  try {
+    const { name, email, password, consent, plan } = body as {
+      name?: string
+      email?: string
+      password?: string
+      consent?: boolean
+      plan?: string
+    }
 
     if (!email || !password || !name) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
@@ -53,7 +68,26 @@ export async function POST(req: Request) {
       err instanceof Prisma.PrismaClientKnownRequestError
         ? { prismaCode: err.code, prismaMeta: err.meta }
         : {}
-    logger.error('[POST /api/auth/register]', { message, stack, ...prismaMeta })
+    const initErr =
+      err instanceof Prisma.PrismaClientInitializationError ? err : null
+    logger.error('[POST /api/auth/register]', {
+      message,
+      stack,
+      ...prismaMeta,
+      ...(initErr && { prismaInitCode: initErr.errorCode }),
+    })
+
+    if (initErr || /Can't reach database|localhost:5432|P1001/i.test(message)) {
+      return NextResponse.json(
+        {
+          error:
+            'Database is unavailable. Check DATABASE_URL in Netlify (hosted Postgres URL, not localhost) and redeploy.',
+          code: 'DATABASE_UNAVAILABLE',
+        },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

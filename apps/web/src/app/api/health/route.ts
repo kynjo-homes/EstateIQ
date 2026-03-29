@@ -7,6 +7,7 @@ import {
 } from '@estateiq/database'
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export async function GET() {
   const start = Date.now()

@@ -1,17 +1,53 @@
+import { readFileSync } from 'node:fs'
+
 import { PrismaClient } from './src/generated/prisma'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+const GLOBAL_DB_URL_KEY = '__ESTATEIQ_DATABASE_URL__' as const
+
 /**
- * Next.js may inline `process.env.DATABASE_URL` at build time. If it was missing during
- * `next build`, the bundle gets `undefined` and Prisma falls back to `localhost:5432`.
- * Dynamic property access reads the real value at runtime (e.g. Netlify Functions).
+ * On Linux serverless (Netlify/AWS), the real process environment is still in
+ * `/proc/self/environ` even when Next.js/webpack replaces `process.env` in the bundle.
+ */
+function readDatabaseUrlFromLinuxProc(): string | undefined {
+  if (typeof process === 'undefined' || process.platform === 'win32') return undefined
+  try {
+    const raw = readFileSync('/proc/self/environ', 'utf8')
+    for (const entry of raw.split('\0')) {
+      if (entry.startsWith('DATABASE_URL=')) {
+        const v = entry.slice('DATABASE_URL='.length)
+        if (v.trim().length > 0) return v.trim()
+      }
+    }
+  } catch {
+    // Not Linux or unreadable
+  }
+  return undefined
+}
+
+/**
+ * Next.js may inline `process.env.DATABASE_URL` at build time as `undefined`, which makes
+ * Prisma fall back to `localhost:5432`. Read order: instrumentation global → Linux proc → env.
  */
 function readDatabaseUrlFromEnv(): string | undefined {
-  const url = process.env['DATABASE' + '_' + 'URL'] as string | undefined
-  if (typeof url === 'string' && url.trim().length > 0) return url.trim()
+  const g = globalThis as unknown as Record<string, string | undefined>
+  const fromGlobal = g[GLOBAL_DB_URL_KEY]
+  if (typeof fromGlobal === 'string' && fromGlobal.trim().length > 0) {
+    return fromGlobal.trim()
+  }
+
+  const fromProc = readDatabaseUrlFromLinuxProc()
+  if (fromProc) return fromProc
+
+  const reflect = Reflect.get(process.env, 'DATABASE_URL')
+  if (typeof reflect === 'string' && reflect.trim().length > 0) return reflect.trim()
+
+  const dyn = process.env['DATABASE' + '_' + 'URL'] as string | undefined
+  if (typeof dyn === 'string' && dyn.trim().length > 0) return dyn.trim()
+
   return undefined
 }
 
