@@ -107,9 +107,10 @@ export function isDatabaseUrlLocalhost(): boolean {
 }
 
 export const prisma = new Proxy({} as PrismaClient, {
-  get(_target, prop, receiver) {
+  get(_target, prop) {
     const client = getPrismaClient()
-    const value = Reflect.get(client, prop, receiver) as unknown
+    // Use client as receiver so prototype getters (e.g. on PrismaClient) see the real instance.
+    const value = Reflect.get(client, prop, client) as unknown
     if (typeof value === 'function') {
       return (value as (...args: unknown[]) => unknown).bind(client)
     }
