@@ -175,10 +175,10 @@ export default function DashboardClient() {
   const quickActions = isAdmin ? adminQuickActions : residentQuickActions
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
 
       {/* Welcome + refresh */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">
             {isSecurity
@@ -199,7 +199,7 @@ export default function DashboardClient() {
         <button
           onClick={load}
           disabled={loading}
-          className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40"
+          className="flex w-fit items-center gap-1.5 self-start text-xs text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-40 sm:self-auto"
         >
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
           Refresh
@@ -208,13 +208,13 @@ export default function DashboardClient() {
 
       {/* Stat cards */}
       {loading ? (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="bg-white border border-gray-100 rounded-xl p-5 animate-pulse h-24" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {statCards.map(({ label, value, sub, icon: Icon, color }) => (
             <div
               key={label}
@@ -237,8 +237,8 @@ export default function DashboardClient() {
 
       {/* Dues progress bar — admin only */}
       {isAdmin && stats && stats.totalCollected + stats.totalOutstanding > 0 && (
-        <div className="bg-white border border-gray-100 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white border border-gray-100 rounded-xl p-4 sm:p-5">
+          <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-medium text-gray-900">Dues collection progress</p>
             <p className="text-sm text-gray-500">{stats.collectionRate}%</p>
           </div>
@@ -252,7 +252,7 @@ export default function DashboardClient() {
               style={{ width: `${stats.collectionRate}%` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-gray-400 mt-2">
+          <div className="mt-2 flex flex-col gap-1 text-xs text-gray-400 sm:flex-row sm:justify-between sm:gap-0">
             <span>{fmt(stats.totalCollected)} collected</span>
             <span>{fmt(stats.totalOutstanding)} outstanding</span>
           </div>

@@ -13,7 +13,7 @@ import {
 import { signOut } from 'next-auth/react'
 import { useState } from 'react'
 import { useResident } from '@/context/ResidentContext'
-import SubscriptionGate from '@/components/SubscriptionGate'
+import { useMobileNav } from '@/context/MobileNavContext'
 import { CreditCard as SubscriptionIcon } from 'lucide-react'
 
 type Role = 'ADMIN' | 'SUPER_ADMIN' | 'SECURITY' | 'RESIDENT'
@@ -111,6 +111,7 @@ export default function Sidebar() {
   const pathname              = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const { profile }           = useResident()
+  const { mobileOpen, closeMobileNav } = useMobileNav()
 
   const currentRole = (profile?.role ?? 'RESIDENT') as Role
 
@@ -118,31 +119,42 @@ export default function Sidebar() {
     item.roles.includes(currentRole)
   )
 
+  const showCollapsed = collapsed && !mobileOpen
+
   return (
-    <aside className={cn(
-      'relative flex flex-col bg-[#111827] text-white transition-all duration-300 min-h-screen shrink-0',
-      collapsed ? 'w-16' : 'w-60'
-    )}>
+    <aside
+      className={cn(
+        'relative flex min-h-0 flex-col bg-[#111827] text-white transition-[transform,width] duration-300 ease-out',
+        'fixed inset-y-0 left-0 z-50 w-60 max-w-[85vw] shrink-0 shadow-xl',
+        'lg:static lg:z-auto lg:max-w-none lg:shadow-none',
+        mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        collapsed ? 'lg:w-16' : 'lg:w-60'
+      )}
+    >
 
       {/* Logo */}
-      <Link href="/dashboard" className={cn(
-        'flex items-center gap-3 px-4 py-5 border-b border-gray-800',
-        collapsed && 'justify-center px-2'
-      )}>
+      <Link
+        href="/dashboard"
+        onClick={closeMobileNav}
+        className={cn(
+          'flex items-center gap-3 px-4 py-5 border-b border-gray-800',
+          showCollapsed && 'justify-center px-2'
+        )}
+      >
         <Image
           src={logo}
           alt="EstateIQ"
-          width={collapsed ? 32 : 140}
-          height={collapsed ? 32 : 40}
+          width={showCollapsed ? 32 : 140}
+          height={showCollapsed ? 32 : 40}
           className={cn(
             'object-contain shrink-0',
-            collapsed ? 'h-8 w-8' : 'h-10 w-auto max-w-[140px]'
+            showCollapsed ? 'h-8 w-8' : 'h-10 w-auto max-w-[140px]'
           )}
         />
       </Link>
 
       {/* Role badge */}
-      {!collapsed && profile?.role && (
+      {!showCollapsed && profile?.role && (
         <div className="px-4 pt-3 pb-1">
           <span className={cn(
             'text-xs font-medium px-2 py-1 rounded-full',
@@ -164,16 +176,17 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={closeMobileNav}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors',
-                collapsed && 'justify-center px-2',
+                showCollapsed && 'justify-center px-2',
                 active
                   ? 'bg-green-600 text-white'
                   : 'text-gray-400 hover:bg-gray-800 hover:text-white'
               )}
             >
               <Icon size={18} className="shrink-0" />
-              {!collapsed && <span>{label}</span>}
+              {!showCollapsed && <span>{label}</span>}
             </Link>
           )
         })}
@@ -182,21 +195,26 @@ export default function Sidebar() {
       {/* Sign out */}
       <div className="px-2 pb-4 border-t border-gray-800 pt-3">
         <button
-          onClick={() => signOut({ callbackUrl: '/sign-in' })}
+          onClick={() => {
+            closeMobileNav()
+            void signOut({ callbackUrl: '/sign-in' })
+          }}
           className={cn(
             'flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors',
-            collapsed && 'justify-center px-2'
+            showCollapsed && 'justify-center px-2'
           )}
         >
           <LogOut size={18} className="shrink-0" />
-          {!collapsed && <span>Sign out</span>}
+          {!showCollapsed && <span>Sign out</span>}
         </button>
       </div>
 
-      {/* Collapse toggle */}
+      {/* Collapse toggle (desktop only) */}
       <button
+        type="button"
         onClick={() => setCollapsed(p => !p)}
-        className="absolute -right-3 top-6 bg-[#111827] border border-gray-700 rounded-full p-0.5 text-gray-400 hover:text-white transition-colors"
+        className="absolute -right-3 top-6 hidden rounded-full border border-gray-700 bg-[#111827] p-0.5 text-gray-400 transition-colors hover:text-white lg:block"
+        aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
       </button>

@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { prisma } from '@estateiq/database'
-import Sidebar from '@/components/layout/Sidebar'
+import DashboardShell from '@/components/layout/DashboardShell'
 import SessionProvider from '@/components/layout/SessionProvider'
 import { ResidentProvider } from '@/context/ResidentContext'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -25,15 +25,12 @@ export default async function DashboardLayout({
     <SessionProvider session={session}>
       <ResidentProvider>
       <SubscriptionProvider>
-      <div className="flex h-screen bg-gray-50 overflow-hidden">
-        <Sidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          <SubscriptionBanner />
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-        </div>
-      </div>
+      <DashboardShell>
+        <SubscriptionBanner />
+        <ErrorBoundary>
+          {children}
+        </ErrorBoundary>
+      </DashboardShell>
     </SubscriptionProvider>
       </ResidentProvider>
     </SessionProvider>

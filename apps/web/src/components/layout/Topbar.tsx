@@ -2,6 +2,7 @@
 import { Bell, Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useResident } from '@/context/ResidentContext'
+import MobileMenuButton from '@/components/layout/MobileMenuButton'
 
 interface Props {
   title: string
@@ -15,10 +16,15 @@ export default function Topbar({ title }: Props) {
     ?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) ?? 'U'
 
   return (
-    <header className="h-16 border-b border-gray-100 bg-white flex items-center justify-between px-6 shrink-0">
-      <h1 className="text-lg font-semibold text-gray-900">{displayTitle}</h1>
+    <header className="flex h-16 shrink-0 items-center justify-between gap-3 border-b border-gray-100 bg-white px-3 sm:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+        <MobileMenuButton />
+        <h1 className="truncate text-base font-semibold text-gray-900 sm:text-lg">
+          {displayTitle}
+        </h1>
+      </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
         {/* Search */}
         <div className="hidden md:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-400 w-52">
           <Search size={14} />

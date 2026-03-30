@@ -5,6 +5,7 @@ import { CheckCircle2, AlertTriangle, XCircle, Loader2, RotateCcw } from 'lucide
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import SubscriptionGate from '@/components/SubscriptionGate'
+import MobileMenuButton from '@/components/layout/MobileMenuButton'
 import logo from '@/components/images/logo.png'
 
 type Outcome = 'GRANTED' | 'WARNING' | 'BLOCKED'
@@ -61,7 +62,10 @@ export default function GateScanPage() {
 
   return (
     <SubscriptionGate feature="vehicleQR">
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6">
+    <div className="relative min-h-screen bg-gray-900 flex flex-col items-center justify-center p-6">
+      <div className="absolute top-4 left-4 z-30">
+        <MobileMenuButton className="text-white hover:bg-white/10 border border-white/15" />
+      </div>
 
       {/* Header */}
       <div className="text-center mb-8">
