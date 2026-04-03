@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate --schema=../../packages/database/prisma/schema.prisma"
+    "postinstall": "prisma generate --schema=../../packages/database/prisma/schema.prisma",
+    "db:migrate": "node --env-file=.env.local ../../node_modules/prisma/build/index.js migrate deploy --schema=../../packages/database/prisma/schema.prisma"
   },
   "dependencies": {
     "@estateiq/database": "*",

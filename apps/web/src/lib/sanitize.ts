@@ -19,3 +19,13 @@ export function sanitizeString(input: string): string {
   export function sanitizeEmail(input: string): string {
     return input.trim().toLowerCase().slice(0, 254)
   }
+
+  /** Contact / long-form text: strip risky patterns, cap length. */
+  export function sanitizeContactMessage(input: string): string {
+    return input
+      .trim()
+      .replace(/[<>]/g, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+      .slice(0, 5000)
+  }

@@ -22,6 +22,17 @@ model AuthUser {
   createdAt        DateTime  @default(now())
 }
 
+/// Public newsletter signups (marketing site).
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  /// e.g. footer, contact — where the form was submitted
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt(sort: Desc)])
+}
+
 model Estate {
   id          String   @id @default(cuid())
   name        String

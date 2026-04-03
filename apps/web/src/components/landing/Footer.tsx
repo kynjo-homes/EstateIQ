@@ -1,28 +1,43 @@
 import Image from "next/image";
 import Link from "next/link";
 import logo from "@/components/images/logo2.png";
+import NewsletterForm from "@/components/NewsletterForm";
+import { footerSocialLinks } from "@/lib/socialLinks";
 
 const footerLinks = [
   {
     heading: "Product",
-    links: ["Features", "Pricing", "Integrations", "Changelog"],
+    links: [
+      { label: "Features", href: "/#features" },
+      { label: "Pricing", href: "/#pricing" },
+      { label: "Integrations", href: "/#features" },
+    ],
   },
   {
     heading: "Company",
-    links: ["About", "Blog", "Careers", "Contact"],
+    links: [
+      { label: "About", href: "/about" },
+      { label: "Blog", href: "/blog" },
+      { label: "Careers", href: "/careers" },
+      { label: "Contact", href: "/contact" },
+    ],
   },
   {
     heading: "Legal",
-    links: ["Privacy Policy", "Terms of Service", "Cookie Policy"],
+    links: [
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms of Service", href: "/terms" },
+      { label: "Cookie Policy", href: "/cookies" },
+    ],
   },
 ];
 
 const Footer = () => (
   <footer className="py-16 bg-card border-t border-border">
     <div className="max-w-7xl mx-auto section-padding">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
         {/* Brand */}
-        <div className="col-span-2 md:col-span-1">
+        <div className="sm:col-span-2 lg:col-span-1">
           <Link href="/" className="flex items-center gap-2 mb-4">
             <Image
               src={logo}
@@ -33,7 +48,7 @@ const Footer = () => (
             />
           </Link>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
-            Intelligent estate management for modern communities.
+            Intelligent estate management platform for modern communities.
           </p>
         </div>
 
@@ -42,23 +57,36 @@ const Footer = () => (
             <h4 className="font-sans text-sm font-semibold text-foreground mb-4">{group.heading}</h4>
             <ul className="space-y-2.5">
               {group.links.map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {link}
-                  </a>
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         ))}
+
+        <div className="sm:col-span-2 lg:col-span-1 max-w-sm">
+          <NewsletterForm variant="footer" />
+        </div>
       </div>
 
       <div className="mt-14 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
-        <span className="text-xs text-muted-foreground">© 2026 Kynjo.Homes. All rights reserved.</span>
-        <div className="flex gap-5">
-          {["Twitter", "LinkedIn", "GitHub"].map((s) => (
-            <a key={s} href="#" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              {s}
+        <span className="text-xs text-muted-foreground">Powered by Bubble Barrel Commerce Limited. © 2026 Kynjo.Homes. All rights reserved.</span>
+        <div className="flex flex-wrap gap-5 justify-center sm:justify-end">
+          {footerSocialLinks.map(({ label, href }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {label}
             </a>
           ))}
         </div>

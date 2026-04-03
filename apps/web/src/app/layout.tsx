@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { validateEnv } from '@/lib/env'
+import CookieConsent from '@/components/CookieConsent'
 
 // Runs at build/startup time on the server
 if (typeof window === 'undefined') {
@@ -15,7 +16,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   )
 }

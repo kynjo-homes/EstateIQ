@@ -76,9 +76,12 @@ export default function PrivacyPage() {
           ))}
         </div>
 
-        <div className="mt-6 text-center">
-          <Link href="/terms" className="text-sm text-green-600 hover:underline mr-6">
+        <div className="mt-6 text-center flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <Link href="/terms" className="text-sm text-green-600 hover:underline">
             Terms of Service
+          </Link>
+          <Link href="/cookies" className="text-sm text-green-600 hover:underline">
+            Cookie Policy
           </Link>
           <Link href="/sign-up" className="text-sm text-gray-400 hover:underline">
             Back to sign up
