@@ -3,6 +3,7 @@ import { Bell, Search } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useResident } from '@/context/ResidentContext'
 import MobileMenuButton from '@/components/layout/MobileMenuButton'
+import UserMenu from '@/components/layout/UserMenu'
 
 interface Props {
   title: string
@@ -37,10 +38,7 @@ export default function Topbar({ title }: Props) {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        {/* Avatar */}
-        <div className="w-8 h-8 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-semibold">
-          {initials}
-        </div>
+        <UserMenu initials={initials} />
       </div>
     </header>
   )
