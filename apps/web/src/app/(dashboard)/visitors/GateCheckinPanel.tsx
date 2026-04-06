@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { X, ShieldCheck, Loader2, CheckCircle2, AlertCircle, LogOut } from 'lucide-react'
+import {
+  X, ShieldCheck, Loader2, CheckCircle2, AlertCircle, LogOut, Ban,
+} from 'lucide-react'
 import { fetchJson } from '@/lib/fetchJson'
 import { cn } from '@/lib/utils'
 
@@ -22,12 +24,15 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
   const [checkingOut, setCheckingOut]   = useState(false)
   const [checkoutDone, setCheckoutDone] = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
+  const [denying, setDenying]               = useState(false)
+  const [denyResult, setDenyResult]         = useState<CheckinResult | null>(null)
 
   async function handleCheckin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError('')
     setResult(null)
+    setDenyResult(null)
 
     const { data, error } = await fetchJson<CheckinResult>('/api/visitors/checkin', {
       method: 'POST',
@@ -39,6 +44,25 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
     setResult(data)
     onCheckin()
     setLoading(false)
+  }
+
+  async function handleDenyEntry() {
+    if (code.length !== 6) return
+    setDenying(true)
+    setError('')
+    setResult(null)
+    setDenyResult(null)
+
+    const { data, error } = await fetchJson<CheckinResult>('/api/visitors/deny-entry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessCode: code.trim() }),
+    })
+
+    setDenying(false)
+    if (error) { setError(error); return }
+    setDenyResult(data)
+    onCheckin()
   }
 
   async function handleCheckout(e: React.FormEvent) {
@@ -93,6 +117,7 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
                     setCode(e.target.value.replace(/\D/g, '').slice(0, 6))
                     setError('')
                     setResult(null)
+                    setDenyResult(null)
                   }}
                   placeholder="000000"
                   maxLength={6}
@@ -124,21 +149,51 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={code.length !== 6 || loading}
-                className="w-full bg-green-600 text-white rounded py-2.5 text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
-              >
-                {loading
-                  ? <><Loader2 size={14} className="animate-spin" /> Checking in...</>
-                  : 'Confirm entry'
-                }
-              </button>
+              {denyResult && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-1.5">
+                  <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
+                    <Ban size={16} /> Entry denied
+                  </div>
+                  <div className="text-sm text-amber-900 space-y-0.5 pl-1">
+                    <p><span className="font-medium">Name:</span> {denyResult.visitorName}</p>
+                    <p><span className="font-medium">Purpose:</span> {denyResult.purpose ?? 'Not specified'}</p>
+                    <p><span className="font-medium">Visiting:</span> {denyResult.residentName}</p>
+                    <p><span className="font-medium">Unit:</span> {denyResult.unit}</p>
+                  </div>
+                  <p className="text-xs text-amber-700 pt-1">
+                    Visit cancelled. The resident has been notified.
+                  </p>
+                </div>
+              )}
 
-              {result && (
+              <div className="flex gap-2">
+                <button
+                  type="submit"
+                  disabled={code.length !== 6 || loading || denying}
+                  className="flex-1 bg-green-600 text-white rounded py-2.5 text-sm font-medium hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2 transition-colors"
+                >
+                  {loading
+                    ? <><Loader2 size={14} className="animate-spin" /> Checking in...</>
+                    : 'Confirm entry'
+                  }
+                </button>
                 <button
                   type="button"
-                  onClick={() => { setCode(''); setResult(null); setError('') }}
+                  disabled={code.length !== 6 || loading || denying}
+                  onClick={handleDenyEntry}
+                  className="flex-1 border border-red-200 bg-red-50 text-red-800 rounded py-2.5 text-sm font-medium hover:bg-red-100 disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  {denying
+                    ? <><Loader2 size={14} className="animate-spin" /> Denying...</>
+                    : <><Ban size={14} /> Deny entry</>
+                  }
+                </button>
+              </div>
+
+              {(result || denyResult) && (
+                <button
+                  type="button"
+                  onClick={() => { setCode(''); setResult(null); setDenyResult(null); setError('') }}
                   className="w-full border border-gray-200 text-gray-600 rounded py-2 text-sm hover:bg-gray-50 transition-colors"
                 >
                   Check in another visitor
@@ -169,7 +224,7 @@ export default function GateCheckinPanel({ onClose, onCheckin }: Props) {
                 type="text"
                 value={checkoutId}
                 onChange={e => { setCheckoutId(e.target.value); setCheckoutError('') }}
-                placeholder="Paste visitor ID to log exit"
+                placeholder="Visitor ID or 6-digit access code"
                 className="flex-1 border border-gray-200 rounded px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-600"
               />
               <button

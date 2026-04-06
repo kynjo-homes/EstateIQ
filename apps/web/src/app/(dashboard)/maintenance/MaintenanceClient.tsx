@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Plus, Wrench, AlertTriangle, Clock, CheckCircle2, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
+import { useResident } from '@/context/ResidentContext'
 import SubmitRequestModal from './SubmitRequestModal'
 import RequestDetailModal from './RequestDetailModal'
 
@@ -45,6 +46,7 @@ const PRIORITY_DOT: Record<Priority, string> = {
 }
 
 export default function MaintenanceClient() {
+  const { profile, isAdmin }            = useResident()
   const [requests, setRequests]         = useState<MaintenanceRequest[]>([])
   const [loading, setLoading]           = useState(true)
   const [showSubmit, setShowSubmit]     = useState(false)
@@ -229,6 +231,12 @@ export default function MaintenanceClient() {
       {selected && (
         <RequestDetailModal
           request={selected}
+          isAdmin={isAdmin}
+          canCancel={
+            !isAdmin &&
+            profile?.id === selected.submittedBy &&
+            selected.status !== 'CLOSED'
+          }
           onClose={() => setSelected(null)}
           onUpdate={() => { setSelected(null); load() }}
         />

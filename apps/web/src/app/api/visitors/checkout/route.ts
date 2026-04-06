@@ -17,13 +17,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { visitorId } = await req.json()
-    if (!visitorId) {
+    let body: { visitorId?: string }
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const key = body.visitorId?.trim()
+    if (!key) {
       return NextResponse.json({ error: 'visitorId is required' }, { status: 400 })
     }
 
+    // Gate staff usually paste the 6-digit access code (shown on cards), not the DB id.
+    const existing = await prisma.visitor.findFirst({
+      where: {
+        estateId: security.estateId,
+        OR:       [{ id: key }, { accessCode: key }],
+      },
+    })
+
+    if (!existing) {
+      return NextResponse.json(
+        { error: 'No visitor found with that ID or access code.' },
+        { status: 404 }
+      )
+    }
+
     const visitor = await prisma.visitor.update({
-      where: { id: visitorId, estateId: security.estateId },
+      where: { id: existing.id },
       data:  { status: 'EXITED', exitedAt: new Date() },
     })
 

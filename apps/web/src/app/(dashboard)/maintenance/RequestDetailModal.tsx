@@ -23,6 +23,10 @@ interface MaintenanceRequest {
 
 interface Props {
   request: MaintenanceRequest
+  /** Full workflow + assignee (admin only) */
+  isAdmin: boolean
+  /** Submitting resident may close/cancel their own open request */
+  canCancel: boolean
   onClose: () => void
   onUpdate: () => void
 }
@@ -51,7 +55,13 @@ const NEXT_STATUS_LABEL: Partial<Record<Status, string>> = {
   RESOLVED:    'Close request',
 }
 
-export default function RequestDetailModal({ request, onClose, onUpdate }: Props) {
+export default function RequestDetailModal({
+  request,
+  isAdmin,
+  canCancel,
+  onClose,
+  onUpdate,
+}: Props) {
   const [assignedTo, setAssignedTo] = useState(request.assignedTo ?? '')
   const [updating, setUpdating]     = useState(false)
   const [error, setError]           = useState('')
@@ -85,6 +95,19 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ assignedTo: assignedTo.trim() || null }),
+    })
+    setUpdating(false)
+    if (error) { setError(error); return }
+    onUpdate()
+  }
+
+  async function handleCancelRequest() {
+    setUpdating(true)
+    setError('')
+    const { error } = await fetchJson(`/api/maintenance/${request.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'CLOSED' }),
     })
     setUpdating(false)
     if (error) { setError(error); return }
@@ -168,31 +191,33 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
             </div>
           </div>
 
-          {/* Assignee field */}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              Assigned to
-            </label>
-            <div className="flex gap-2">
-              <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded px-3 py-2">
-                <User size={14} className="text-gray-400 shrink-0" />
-                <input
-                  type="text"
-                  value={assignedTo}
-                  onChange={e => setAssignedTo(e.target.value)}
-                  placeholder="Enter staff name or ID"
-                  className="flex-1 text-sm focus:outline-none bg-transparent"
-                />
+          {/* Assignee field — admins only */}
+          {isAdmin && (
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Assigned to
+              </label>
+              <div className="flex gap-2">
+                <div className="flex-1 flex items-center gap-2 border border-gray-200 rounded px-3 py-2">
+                  <User size={14} className="text-gray-400 shrink-0" />
+                  <input
+                    type="text"
+                    value={assignedTo}
+                    onChange={e => setAssignedTo(e.target.value)}
+                    placeholder="Enter staff name or ID"
+                    className="flex-1 text-sm focus:outline-none bg-transparent"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveAssignee}
+                  disabled={updating}
+                  className="px-3 py-2 border border-gray-200 rounded text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors shrink-0"
+                >
+                  Save
+                </button>
               </div>
-              <button
-                onClick={handleSaveAssignee}
-                disabled={updating}
-                className="px-3 py-2 border border-gray-200 rounded text-xs text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors shrink-0"
-              >
-                Save
-              </button>
             </div>
-          </div>
+          )}
 
           {/* Status progress stepper */}
           <div>
@@ -228,11 +253,11 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
             </div>
           </div>
 
-          {/* Attachments */}
+          {/* Attachments (Cloudinary / image URLs) */}
           {request.mediaUrls.length > 0 && (
             <div>
               <p className="text-xs font-medium text-gray-500 mb-2">
-                Attachments ({request.mediaUrls.length})
+                Photos ({request.mediaUrls.length})
               </p>
               <div className="flex flex-wrap gap-2">
                 {request.mediaUrls.map((url, i) => (
@@ -241,9 +266,14 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
                     href={url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-brand-600 underline hover:text-brand-700"
+                    className="block w-28 h-28 rounded-lg border border-gray-100 overflow-hidden bg-gray-50 shrink-0 hover:ring-2 hover:ring-brand-200 transition-shadow"
                   >
-                    Attachment {i + 1}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt={`Attachment ${i + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </a>
                 ))}
               </div>
@@ -258,7 +288,7 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
             >
               Close
             </button>
-            {nextLabel && (
+            {isAdmin && nextLabel && (
               <button
                 onClick={handleStatusAdvance}
                 disabled={updating}
@@ -267,6 +297,18 @@ export default function RequestDetailModal({ request, onClose, onUpdate }: Props
                 {updating
                   ? <><Loader2 size={14} className="animate-spin" /> Updating...</>
                   : nextLabel
+                }
+              </button>
+            )}
+            {canCancel && (
+              <button
+                onClick={handleCancelRequest}
+                disabled={updating}
+                className="flex-1 border border-red-200 text-red-700 rounded py-2.5 text-sm font-medium hover:bg-red-50 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {updating
+                  ? <><Loader2 size={14} className="animate-spin" /> Cancelling...</>
+                  : 'Cancel request'
                 }
               </button>
             )}

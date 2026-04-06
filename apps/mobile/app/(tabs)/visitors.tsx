@@ -10,7 +10,7 @@ import {
   import { apiFetch } from '@/lib/api'
   import EmptyState from '@/components/EmptyState'
   
-  type VisitorStatus = 'EXPECTED' | 'ARRIVED' | 'EXITED' | 'CANCELLED'
+  type VisitorStatus = 'EXPECTED' | 'ARRIVED' | 'EXITED' | 'DENIED' | 'CANCELLED'
   
   interface Visitor {
     id: string
@@ -28,6 +28,7 @@ import {
     EXPECTED:  { bg: '#eff6ff', text: '#2563eb' },
     ARRIVED:   { bg: '#f0fdf4', text: '#16a34a' },
     EXITED:    { bg: '#f3f4f6', text: '#6b7280' },
+    DENIED:    { bg: '#fffbeb', text: '#b45309' },
     CANCELLED: { bg: '#fef2f2', text: '#dc2626' },
   }
   

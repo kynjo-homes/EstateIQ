@@ -4,6 +4,7 @@ import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
 import { getPublicAppOrigin } from '@/lib/appUrl'
 import { sendOnboardingWelcomeEmail } from '@/lib/email'
+import { isValidNigeriaMobileLocal, sanitizeNigeriaPhoneInput } from '@/lib/nigeriaPhone'
 
 export async function POST(req: Request) {
   const session = await auth()
@@ -30,6 +31,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'That estate URL is already taken' }, { status: 409 })
   }
 
+  const phoneNormalized = typeof phone === 'string' ? sanitizeNigeriaPhoneInput(phone) : ''
+  if (phoneNormalized && !isValidNigeriaMobileLocal(phoneNormalized)) {
+    return NextResponse.json(
+      { error: 'Invalid Nigerian phone number. Use 11 digits (e.g. 08012345678) or leave blank.' },
+      { status: 400 }
+    )
+  }
+
   try {
     // Run everything in a single transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -53,7 +62,7 @@ export async function POST(req: Request) {
           firstName,
           lastName,
           email,
-          phone: phone || null,
+          phone: phoneNormalized || null,
         },
       })
 

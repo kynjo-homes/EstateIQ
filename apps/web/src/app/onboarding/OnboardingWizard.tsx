@@ -5,6 +5,11 @@ import { Building2, User, Home, CheckCircle2, ChevronRight, ChevronLeft, Loader2
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import { openPaystackInlinePopup } from '@/lib/paystackInline'
+import {
+  sanitizeNigeriaPhoneInput,
+  isValidNigeriaMobileLocal,
+  NIGERIA_PHONE_HINT,
+} from '@/lib/nigeriaPhone'
 
 const STEPS = [
   { id: 1, label: 'Your estate',  icon: Building2 },
@@ -48,6 +53,11 @@ export default function OnboardingWizard({ userName = '' }: Props) {
       setForm(p => ({ ...p, [key]: e.target.value }))
   }
 
+  function setPhone(e: React.ChangeEvent<HTMLInputElement>) {
+    const phone = sanitizeNigeriaPhoneInput(e.target.value)
+    setForm(p => ({ ...p, phone }))
+  }
+
   // Auto-generate slug from estate name
   function handleEstateName(e: React.ChangeEvent<HTMLInputElement>) {
     const name = e.target.value
@@ -66,6 +76,12 @@ export default function OnboardingWizard({ userName = '' }: Props) {
   async function handleSubmit() {
     setLoading(true)
     setError('')
+
+    if (form.phone && !isValidNigeriaMobileLocal(form.phone)) {
+      setError('Enter a valid 11-digit Nigerian mobile number (e.g. 08012345678), or leave phone blank.')
+      setLoading(false)
+      return
+    }
 
     const res = await fetch('/api/onboarding', {
       method: 'POST',
@@ -154,7 +170,11 @@ export default function OnboardingWizard({ userName = '' }: Props) {
 
   function canProceed() {
     if (step === 1) return form.estateName && form.slug && slugStatus === 'available'
-    if (step === 2) return form.firstName && form.lastName
+    if (step === 2) {
+      if (!form.firstName.trim() || !form.lastName.trim()) return false
+      if (form.phone && !isValidNigeriaMobileLocal(form.phone)) return false
+      return true
+    }
     if (step === 3) return form.unitNumber
     return false
   }
@@ -276,6 +296,8 @@ export default function OnboardingWizard({ userName = '' }: Props) {
                   </label>
                   <input
                     type="text" value={form.firstName} onChange={set('firstName')}
+                    placeholder="e.g. Adeola"
+                    autoComplete="given-name"
                     className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                 </div>
@@ -285,18 +307,39 @@ export default function OnboardingWizard({ userName = '' }: Props) {
                   </label>
                   <input
                     type="text" value={form.lastName} onChange={set('lastName')}
+                    placeholder="e.g. Oke"
+                    autoComplete="family-name"
                     className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Phone number</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone number <span className="text-gray-400 font-normal">(optional)</span>
+                </label>
                 <input
-                  type="tel" value={form.phone} onChange={set('phone')}
-                  placeholder="e.g. 08012345678"
-                  className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600"
+                  type="tel"
+                  inputMode="numeric"
+                  autoComplete="tel"
+                  maxLength={14}
+                  value={form.phone}
+                  onChange={setPhone}
+                  placeholder="08012345678"
+                  aria-invalid={form.phone.length > 0 && !isValidNigeriaMobileLocal(form.phone)}
+                  className={cn(
+                    'w-full border rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-600',
+                    form.phone.length > 0 && !isValidNigeriaMobileLocal(form.phone)
+                      ? 'border-red-200 bg-red-50/40'
+                      : 'border-gray-200'
+                  )}
                 />
+                <p className="text-xs text-gray-500 mt-1.5">{NIGERIA_PHONE_HINT}</p>
+                {form.phone.length > 0 && !isValidNigeriaMobileLocal(form.phone) && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Use 11 digits starting with 0 (e.g. 08012345678).
+                  </p>
+                )}
               </div>
 
               <div className="bg-brand-50 rounded p-3 text-xs text-brand-700">

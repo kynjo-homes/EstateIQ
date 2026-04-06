@@ -21,15 +21,17 @@ export async function GET(
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
+    const isEstateAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(resident.role)
+
     const levy = await prisma.levy.findFirst({
       where: { id, estateId: resident.estateId },
       include: {
-        payments: {
-          include: {
-            unit:     { select: { id: true, number: true, block: true } },
-            resident: { select: { id: true, firstName: true, lastName: true, email: true } },
+        estate: {
+          select: {
+            name:               true,
+            duesBankName:       true,
+            duesAccountNumber:  true,
           },
-          orderBy: { createdAt: 'asc' },
         },
       },
     })
@@ -38,7 +40,28 @@ export async function GET(
       return NextResponse.json({ error: 'Levy not found' }, { status: 404 })
     }
 
-    return NextResponse.json(levy)
+    const payments = await prisma.payment.findMany({
+      where: isEstateAdmin
+        ? { levyId: id }
+        : {
+            levyId: id,
+            OR: [
+              { residentId: resident.id },
+              ...(resident.unitId ? [{ unitId: resident.unitId }] : []),
+            ],
+          },
+      include: {
+        unit:     { select: { id: true, number: true, block: true } },
+        resident: { select: { id: true, firstName: true, lastName: true, email: true } },
+      },
+      orderBy: { createdAt: 'asc' },
+    })
+
+    const residentCount = await prisma.resident.count({
+      where: { estateId: resident.estateId, isActive: true },
+    })
+
+    return NextResponse.json({ ...levy, payments, residentCount })
   } catch (err: any) {
     logger.error('[GET /api/levies/:id]', { message: err.message, stack: err.stack })
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

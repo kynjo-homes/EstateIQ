@@ -112,6 +112,7 @@ export default function SignUpForm() {
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
               required
               autoComplete="name"
+              placeholder="e.g. Adeola Oke"
               className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
@@ -123,6 +124,7 @@ export default function SignUpForm() {
               onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
               required
               autoComplete="email"
+              placeholder="you@example.com"
               className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
@@ -135,6 +137,7 @@ export default function SignUpForm() {
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                 required
                 autoComplete="new-password"
+                placeholder="At least 8 characters with upper, lower & number"
                 className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <button

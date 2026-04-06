@@ -16,19 +16,26 @@ export async function POST(req: Request) {
     })
     if (!security || !['SECURITY', 'ADMIN', 'SUPER_ADMIN'].includes(security.role)) {
       return NextResponse.json(
-        { error: 'Only security staff can check in visitors' },
+        { error: 'Only security staff can deny entry' },
         { status: 403 }
       )
     }
 
-    const { accessCode } = await req.json()
-    if (!accessCode?.trim()) {
+    let body: { accessCode?: string }
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const accessCode = body.accessCode?.trim()
+    if (!accessCode) {
       return NextResponse.json({ error: 'Access code is required' }, { status: 400 })
     }
 
     const visitor = await prisma.visitor.findFirst({
       where: {
-        accessCode: accessCode.trim(),
+        accessCode,
         estateId:   security.estateId,
         status:     'EXPECTED',
       },
@@ -46,31 +53,33 @@ export async function POST(req: Request) {
 
     if (!visitor) {
       return NextResponse.json(
-        { error: 'Invalid or expired access code. Visitor may have already checked in or been cancelled.' },
+        {
+          error:
+            'Invalid or expired access code. Visitor may have already checked in or been cancelled.',
+        },
         { status: 404 }
       )
     }
 
-    const updated = await prisma.visitor.update({
-      where: { id: visitor.id },
-      data:  { status: 'ARRIVED', arrivedAt: new Date() },
-    })
+    // Use raw SQL so this works even when the Next.js bundle has a stale generated Prisma
+    // client that does not yet list DENIED in its embedded enum schema (would throw
+    // PrismaClientValidationError). The database must still have the DENIED enum value
+    // (run migration `20260406140000_visitor_status_denied`).
+    await prisma.$executeRaw`
+      UPDATE "Visitor"
+      SET status = 'DENIED'::"VisitorStatus"
+      WHERE id = ${visitor.id}
+    `
 
-    // Fire real-time SSE event directly to the resident's open connection
-    sendToResident(visitor.residentId, 'visitor-arrived', {
+    sendToResident(visitor.residentId, 'visitor-denied-at-gate', {
       visitorName: visitor.name,
       purpose:     visitor.purpose,
-      arrivedAt:   updated.arrivedAt,
-      unit: visitor.resident.unit
-        ? `${visitor.resident.unit.block ? visitor.resident.unit.block + ', ' : ''}${visitor.resident.unit.number}`
-        : null,
     })
 
     const unitLabel = visitor.resident.unit
       ? `${visitor.resident.unit.block ? visitor.resident.unit.block + ', ' : ''}${visitor.resident.unit.number}`
       : 'Unknown unit'
 
-    // Flat shape — GateCheckinPanel / mobile gate read these keys on the JSON root
     return NextResponse.json({
       visitorName:  visitor.name,
       purpose:      visitor.purpose,
@@ -78,10 +87,20 @@ export async function POST(req: Request) {
       unit:         unitLabel,
     })
   } catch (err) {
-    logger.error('[POST /api/visitors/checkin]', {
-      message: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack : undefined,
+    const msg = err instanceof Error ? err.message : String(err)
+    logger.error('[POST /api/visitors/deny-entry]', {
+      message: msg,
+      stack:   err instanceof Error ? err.stack : undefined,
     })
+    if (/invalid input value for enum|VisitorStatus|22P02/i.test(msg)) {
+      return NextResponse.json(
+        {
+          error:
+            'Database is missing the DENIED visitor status. Apply migrations (e.g. prisma migrate deploy), then try again.',
+        },
+        { status: 503 }
+      )
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,30 +1,20 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { Plus, BarChart2, Trash2, Clock, CheckCircle2, Lock } from 'lucide-react'
+import { Plus, BarChart2, Trash2, Clock, CheckCircle2, Lock, Eye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import CreatePollModal from './CreatePollModal'
+import PollDetailModal from './PollDetailModal'
+import PollVoteOptions from './PollVoteOptions'
 import { useResident } from '@/context/ResidentContext'
-
-interface Poll {
-  id: string
-  question: string
-  options: string[]
-  endsAt: string
-  isAnonymous: boolean
-  isExpired: boolean
-  hasVoted: boolean
-  myVote: number | null
-  voteCounts: number[]
-  totalVotes: number
-  createdAt: string
-}
+import type { Poll } from './pollTypes'
 
 export default function PollsClient() {
   const { isAdmin }                       = useResident()
   const [polls, setPolls]                 = useState<Poll[]>([])
   const [loading, setLoading]             = useState(true)
   const [showCreate, setShowCreate]       = useState(false)
+  const [detailPoll, setDetailPoll]       = useState<Poll | null>(null)
   const [voting, setVoting]               = useState<string | null>(null)
   const [deleting, setDeleting]           = useState<string | null>(null)
   const [filter, setFilter]               = useState<'ALL' | 'ACTIVE' | 'ENDED'>('ALL')
@@ -32,7 +22,12 @@ export default function PollsClient() {
   async function load() {
     setLoading(true)
     const { data } = await fetchJson<Poll[]>('/api/polls')
-    setPolls(data ?? [])
+    const next = data ?? []
+    setPolls(next)
+    setDetailPoll(prev => {
+      if (!prev) return null
+      return next.find(p => p.id === prev.id) ?? null
+    })
     setLoading(false)
   }
 
@@ -140,7 +135,6 @@ export default function PollsClient() {
         <div className="space-y-4">
           {filtered.map(poll => {
             const isVoting  = voting === poll.id
-            const maxVotes  = Math.max(...poll.voteCounts, 1)
             const canVote   = !poll.isExpired && !poll.hasVoted
 
             return (
@@ -185,81 +179,35 @@ export default function PollsClient() {
                       </div>
                     </div>
 
-                    {isAdmin && (
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
-                        onClick={() => handleDelete(poll.id)}
-                        disabled={deleting === poll.id}
-                        className="p-1.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40 shrink-0"
+                        type="button"
+                        onClick={() => setDetailPoll(poll)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-brand-600 border border-brand-200 hover:bg-brand-50 transition-colors"
                       >
-                        <Trash2 size={14} />
+                        <Eye size={13} />
+                        Details
                       </button>
-                    )}
-                  </div>
-
-                  {/* Options */}
-                  <div className="space-y-2">
-                    {poll.options.map((option, i) => {
-                      const count      = poll.voteCounts[i]
-                      const percent    = poll.totalVotes > 0
-                        ? Math.round((count / poll.totalVotes) * 100) : 0
-                      const isMyVote   = poll.myVote === i
-                      const isLeading  = count === maxVotes && count > 0
-                      const showResults = poll.hasVoted || poll.isExpired
-
-                      return (
+                      {isAdmin && (
                         <button
-                          key={i}
-                          onClick={() => canVote && !isVoting && handleVote(poll.id, i)}
-                          disabled={!canVote || isVoting}
-                          className={cn(
-                            'w-full text-left rounded border transition-all overflow-hidden',
-                            canVote && !isVoting
-                              ? 'hover:border-green-400 hover:bg-brand-50 cursor-pointer'
-                              : 'cursor-default',
-                            isMyVote
-                              ? 'border-green-400 bg-brand-50'
-                              : 'border-gray-100 bg-white',
-                          )}
+                          type="button"
+                          onClick={() => handleDelete(poll.id)}
+                          disabled={deleting === poll.id}
+                          className="p-1.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
+                          aria-label="Delete poll"
                         >
-                          <div className="relative px-3 py-2.5">
-                            {showResults && (
-                              <div
-                                className={cn(
-                                  'absolute inset-0 rounded transition-all duration-500',
-                                  isMyVote ? 'bg-green-100' : isLeading ? 'bg-gray-100' : 'bg-gray-50'
-                                )}
-                                style={{ width: `${percent}%` }}
-                              />
-                            )}
-                            <div className="relative flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2 min-w-0">
-                                {isMyVote && (
-                                  <CheckCircle2 size={13} className="text-brand-600 shrink-0" />
-                                )}
-                                <span className={cn(
-                                  'text-sm truncate',
-                                  isMyVote ? 'font-medium text-brand-700' : 'text-gray-700'
-                                )}>
-                                  {option}
-                                </span>
-                              </div>
-                              {showResults && (
-                                <div className="flex items-center gap-2 shrink-0">
-                                  <span className="text-xs text-gray-400">{count}</span>
-                                  <span className={cn(
-                                    'text-xs font-semibold w-9 text-right',
-                                    isLeading ? 'text-gray-700' : 'text-gray-400'
-                                  )}>
-                                    {percent}%
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          <Trash2 size={14} />
                         </button>
-                      )
-                    })}
+                      )}
+                    </div>
                   </div>
+
+                  <PollVoteOptions
+                    poll={poll}
+                    isVoting={isVoting}
+                    canVote={canVote}
+                    onVote={handleVote}
+                  />
 
                   {canVote && (
                     <p className="text-xs text-gray-400 text-center">
@@ -284,6 +232,19 @@ export default function PollsClient() {
         <CreatePollModal
           onClose={() => setShowCreate(false)}
           onSuccess={() => { setShowCreate(false); load() }}
+        />
+      )}
+
+      {detailPoll && (
+        <PollDetailModal
+          poll={detailPoll}
+          timeRemaining={timeRemaining}
+          votingPollId={voting}
+          deletingPollId={deleting}
+          isAdmin={isAdmin}
+          onClose={() => setDetailPoll(null)}
+          onVote={handleVote}
+          onDelete={handleDelete}
         />
       )}
     </div>

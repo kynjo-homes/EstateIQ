@@ -15,23 +15,71 @@ export async function GET() {
     })
     if (!resident) return NextResponse.json([])
 
+    const isEstateAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(resident.role)
+
+    if (isEstateAdmin) {
+      const levies = await prisma.levy.findMany({
+        where: { estateId: resident.estateId },
+        include: {
+          payments: { select: { status: true, amount: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+      const enriched = levies.map(levy => {
+        const rows = levy.payments
+        const total   = rows.length
+        const paid    = rows.filter(p => p.status === 'PAID').length
+        const pending = rows.filter(p => p.status === 'PENDING').length
+        const amountCollected = rows
+          .filter(p => p.status === 'PAID')
+          .reduce((sum, p) => sum + p.amount, 0)
+        const pendingAmount = rows
+          .filter(p => p.status === 'PENDING')
+          .reduce((sum, p) => sum + p.amount, 0)
+        return {
+          ...levy,
+          payments: undefined,
+          _count: { total, paid, pending },
+          amountCollected,
+          pendingAmount,
+        }
+      })
+      return NextResponse.json(enriched)
+    }
+
     const levies = await prisma.levy.findMany({
       where: { estateId: resident.estateId },
-      include: {
-        payments: {
-          select: { status: true, amount: true },
-        },
-      },
       orderBy: { createdAt: 'desc' },
     })
 
-    // Attach summary counts to each levy
+    const viewerPayments = await prisma.payment.findMany({
+      where: {
+        levy: { estateId: resident.estateId },
+        OR: [
+          { residentId: resident.id },
+          ...(resident.unitId ? [{ unitId: resident.unitId }] : []),
+        ],
+      },
+      select: { levyId: true, status: true, amount: true },
+    })
+
+    const viewerPaymentsByLevy = new Map<string, { status: string; amount: number }[]>()
+    for (const p of viewerPayments) {
+      const list = viewerPaymentsByLevy.get(p.levyId) ?? []
+      list.push({ status: p.status, amount: p.amount })
+      viewerPaymentsByLevy.set(p.levyId, list)
+    }
+
     const enriched = levies.map(levy => {
-      const total  = levy.payments.length
-      const paid   = levy.payments.filter(p => p.status === 'PAID').length
-      const pending = levy.payments.filter(p => p.status === 'PENDING').length
-      const amountCollected = levy.payments
+      const rows = viewerPaymentsByLevy.get(levy.id) ?? []
+      const total   = rows.length
+      const paid    = rows.filter(p => p.status === 'PAID').length
+      const pending = rows.filter(p => p.status === 'PENDING').length
+      const amountCollected = rows
         .filter(p => p.status === 'PAID')
+        .reduce((sum, p) => sum + p.amount, 0)
+      const pendingAmount = rows
+        .filter(p => p.status === 'PENDING')
         .reduce((sum, p) => sum + p.amount, 0)
 
       return {
@@ -39,6 +87,7 @@ export async function GET() {
         payments: undefined,
         _count: { total, paid, pending },
         amountCollected,
+        pendingAmount,
       }
     })
 

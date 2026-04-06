@@ -2,19 +2,20 @@
 import { useEffect, useState } from 'react'
 import {
   Plus, ShieldCheck, Clock, CheckCircle2,
-  XCircle, LogOut, Search, QrCode,
+  XCircle, LogOut, Search, QrCode, Eye, Ban,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import { useSSE } from '@/hooks/useSSE'
 import { useResident } from '@/context/ResidentContext'
 import RegisterVisitorModal from './RegisterVisitorModal'
+import VisitorDetailModal from './VisitorDetailModal'
 import GateCheckinPanel from './GateCheckinPanel'
 import VisitorToast from './VisitorToast'
 
-type VisitorStatus = 'EXPECTED' | 'ARRIVED' | 'EXITED' | 'CANCELLED'
+type VisitorStatus = 'EXPECTED' | 'ARRIVED' | 'EXITED' | 'DENIED' | 'CANCELLED'
 
-interface Visitor {
+export interface Visitor {
   id: string
   name: string
   phone: string | null
@@ -36,6 +37,7 @@ const STATUS_STYLES: Record<VisitorStatus, string> = {
   EXPECTED:  'bg-brand-50  text-brand-700',
   ARRIVED:   'bg-green-50 text-green-700',
   EXITED:    'bg-gray-100 text-gray-500',
+  DENIED:    'bg-amber-50 text-amber-800',
   CANCELLED: 'bg-red-50   text-red-500',
 }
 
@@ -43,6 +45,7 @@ const STATUS_ICONS: Record<VisitorStatus, any> = {
   EXPECTED:  Clock,
   ARRIVED:   CheckCircle2,
   EXITED:    LogOut,
+  DENIED:    Ban,
   CANCELLED: XCircle,
 }
 
@@ -57,6 +60,7 @@ export default function VisitorsClient() {
   const [statusFilter, setStatusFilter]   = useState<VisitorStatus | 'ALL'>('ALL')
   const [showRegister, setShowRegister]   = useState(false)
   const [showGate, setShowGate]           = useState(false)
+  const [viewVisitor, setViewVisitor]     = useState<Visitor | null>(null)
   const [toast, setToast]                 = useState<{ name: string; purpose: string | null } | null>(null)
 
   async function load() {
@@ -72,6 +76,14 @@ export default function VisitorsClient() {
   useSSE({
     'visitor-arrived': (data) => {
       setToast({ name: data.visitorName, purpose: data.purpose })
+      load()
+      setTimeout(() => setToast(null), 6000)
+    },
+    'visitor-denied-at-gate': (data) => {
+      setToast({
+        name: data.visitorName,
+        purpose: 'Entry denied at gate',
+      })
       load()
       setTimeout(() => setToast(null), 6000)
     },
@@ -103,6 +115,7 @@ export default function VisitorsClient() {
     EXPECTED:  visitors.filter(v => v.status === 'EXPECTED').length,
     ARRIVED:   visitors.filter(v => v.status === 'ARRIVED').length,
     EXITED:    visitors.filter(v => v.status === 'EXITED').length,
+    DENIED:    visitors.filter(v => v.status === 'DENIED').length,
     CANCELLED: visitors.filter(v => v.status === 'CANCELLED').length,
   }
 
@@ -119,11 +132,12 @@ export default function VisitorsClient() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           { label: 'Expected', value: counts.EXPECTED,  color: 'text-brand-600',  bg: 'bg-brand-50'  },
           { label: 'Arrived',  value: counts.ARRIVED,   color: 'text-green-600', bg: 'bg-green-50' },
           { label: 'Exited',   value: counts.EXITED,    color: 'text-gray-600',  bg: 'bg-gray-50'  },
+          { label: 'Denied',   value: counts.DENIED,    color: 'text-amber-700', bg: 'bg-amber-50' },
           { label: 'Cancelled',value: counts.CANCELLED, color: 'text-red-500',   bg: 'bg-red-50'   },
         ].map(({ label, value, color, bg }) => (
           <div key={label} className={cn('rounded-xl p-4', bg)}>
@@ -165,7 +179,7 @@ export default function VisitorsClient() {
 
       {/* Status filter tabs */}
       <div className="flex gap-2 flex-wrap">
-        {(['ALL', 'EXPECTED', 'ARRIVED', 'EXITED', 'CANCELLED'] as const).map(s => (
+        {(['ALL', 'EXPECTED', 'ARRIVED', 'EXITED', 'DENIED', 'CANCELLED'] as const).map(s => (
           <button
             key={s}
             onClick={() => setStatusFilter(s)}
@@ -269,19 +283,29 @@ export default function VisitorsClient() {
                     </div>
                   </div>
 
-                  {/* Access code + cancel */}
+                  {/* Access code + actions */}
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <div className="bg-gray-900 text-white text-lg font-mono font-bold px-3 py-1.5 rounded tracking-widest">
                       {v.accessCode}
                     </div>
-                    {v.status === 'EXPECTED' && (
+                    <div className="flex flex-col items-end gap-1.5">
                       <button
-                        onClick={() => handleCancel(v.id)}
-                        className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                        type="button"
+                        onClick={() => setViewVisitor(v)}
+                        className="text-xs text-gray-600 hover:text-gray-900 font-medium flex items-center gap-1 transition-colors"
                       >
-                        Cancel visit
+                        <Eye size={12} /> View
                       </button>
-                    )}
+                      {v.status === 'EXPECTED' && (
+                        <button
+                          type="button"
+                          onClick={() => handleCancel(v.id)}
+                          className="text-xs text-red-400 hover:text-red-600 transition-colors"
+                        >
+                          Cancel visit
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -294,6 +318,13 @@ export default function VisitorsClient() {
         <RegisterVisitorModal
           onClose={() => setShowRegister(false)}
           onSuccess={() => { setShowRegister(false); load() }}
+        />
+      )}
+
+      {viewVisitor && (
+        <VisitorDetailModal
+          visitor={viewVisitor}
+          onClose={() => setViewVisitor(null)}
         />
       )}
 

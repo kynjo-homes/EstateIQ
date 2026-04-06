@@ -23,12 +23,15 @@ import {
     const [error, setError]         = useState('')
     const [checkoutId, setCheckoutId] = useState('')
     const [checkingOut, setCheckingOut] = useState(false)
+    const [denying, setDenying] = useState(false)
+    const [denyResult, setDenyResult] = useState<CheckinResult | null>(null)
   
     async function handleCheckin() {
       if (code.length !== 6) return
       setLoading(true)
       setError('')
       setResult(null)
+      setDenyResult(null)
   
       const { data, error } = await apiFetch<CheckinResult>('/api/visitors/checkin', {
         method: 'POST',
@@ -38,6 +41,23 @@ import {
       setLoading(false)
       if (error) { setError(error); return }
       setResult(data)
+    }
+
+    async function handleDenyEntry() {
+      if (code.length !== 6) return
+      setDenying(true)
+      setError('')
+      setResult(null)
+      setDenyResult(null)
+
+      const { data, error } = await apiFetch<CheckinResult>('/api/visitors/deny-entry', {
+        method: 'POST',
+        body:   { accessCode: code },
+      })
+
+      setDenying(false)
+      if (error) { setError(error); return }
+      setDenyResult(data)
     }
   
     async function handleCheckout() {
@@ -79,6 +99,7 @@ import {
                 setCode(t.replace(/\D/g, '').slice(0, 6))
                 setError('')
                 setResult(null)
+                setDenyResult(null)
               }}
               placeholder="000000"
               placeholderTextColor="#9ca3af"
@@ -111,23 +132,54 @@ import {
                 </Text>
               </View>
             )}
+
+            {denyResult && (
+              <View style={styles.denyBox}>
+                <View style={styles.denyHeader}>
+                  <Ionicons name="close-circle" size={20} color="#b45309" />
+                  <Text style={styles.denyTitle}>Entry denied</Text>
+                </View>
+                <View style={styles.resultRows}>
+                  <ResultRowDeny label="Name"     value={denyResult.visitorName}  />
+                  <ResultRowDeny label="Purpose"  value={denyResult.purpose ?? 'Not specified'} />
+                  <ResultRowDeny label="Visiting" value={denyResult.residentName} />
+                  <ResultRowDeny label="Unit"     value={denyResult.unit}         />
+                </View>
+                <Text style={styles.denyNotifiedText}>
+                  Visit cancelled. The resident has been notified.
+                </Text>
+              </View>
+            )}
   
-            <TouchableOpacity
-              style={[styles.checkinBtn, (code.length !== 6 || loading) && styles.btnDisabled]}
-              onPress={handleCheckin}
-              disabled={code.length !== 6 || loading}
-              activeOpacity={0.8}
-            >
-              {loading
-                ? <ActivityIndicator color="#fff" />
-                : <Text style={styles.checkinBtnText}>Confirm entry</Text>
-              }
-            </TouchableOpacity>
+            <View style={styles.checkinActions}>
+              <TouchableOpacity
+                style={[styles.checkinBtn, (code.length !== 6 || loading || denying) && styles.btnDisabled]}
+                onPress={handleCheckin}
+                disabled={code.length !== 6 || loading || denying}
+                activeOpacity={0.8}
+              >
+                {loading
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.checkinBtnText}>Confirm entry</Text>
+                }
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.denyBtn, (code.length !== 6 || loading || denying) && styles.btnDisabled]}
+                onPress={handleDenyEntry}
+                disabled={code.length !== 6 || loading || denying}
+                activeOpacity={0.8}
+              >
+                {denying
+                  ? <ActivityIndicator color="#991b1b" />
+                  : <Text style={styles.denyBtnText}>Deny entry</Text>
+                }
+              </TouchableOpacity>
+            </View>
   
-            {result && (
+            {(result || denyResult) && (
               <TouchableOpacity
                 style={styles.resetBtn}
-                onPress={() => { setCode(''); setResult(null); setError('') }}
+                onPress={() => { setCode(''); setResult(null); setDenyResult(null); setError('') }}
               >
                 <Text style={styles.resetText}>Check in another visitor</Text>
               </TouchableOpacity>
@@ -148,7 +200,7 @@ import {
               style={styles.input}
               value={checkoutId}
               onChangeText={setCheckoutId}
-              placeholder="Paste visitor ID to log exit"
+              placeholder="Visitor ID or 6-digit access code"
               placeholderTextColor="#9ca3af"
             />
             <TouchableOpacity
@@ -177,6 +229,15 @@ import {
       </View>
     )
   }
+
+  function ResultRowDeny({ label, value }: { label: string; value: string }) {
+    return (
+      <View style={styles.resultRow}>
+        <Text style={styles.denyResultLabel}>{label}</Text>
+        <Text style={styles.denyResultValue}>{value}</Text>
+      </View>
+    )
+  }
   
   const styles = StyleSheet.create({
     container:      { flex: 1, backgroundColor: '#f9fafb' },
@@ -197,7 +258,16 @@ import {
     resultLabel:    { fontSize: 13, color: '#6b7280' },
     resultValue:    { fontSize: 13, fontWeight: '500', color: '#166534' },
     notifiedText:   { fontSize: 12, color: '#16a34a' },
-    checkinBtn:     { backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+    denyBox:        { backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fcd34d', borderRadius: 14, padding: 14, gap: 10 },
+    denyHeader:     { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    denyTitle:      { fontSize: 14, fontWeight: '600', color: '#92400e' },
+    denyResultLabel:{ fontSize: 13, color: '#a16207' },
+    denyResultValue: { fontSize: 13, fontWeight: '500', color: '#78350f' },
+    denyNotifiedText: { fontSize: 12, color: '#b45309' },
+    checkinActions: { flexDirection: 'row', gap: 10 },
+    checkinBtn:     { flex: 1, backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+    denyBtn:        { flex: 1, backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+    denyBtnText:    { color: '#991b1b', fontSize: 15, fontWeight: '600' },
     checkinBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
     btnDisabled:    { opacity: 0.5 },
     resetBtn:       { alignItems: 'center', paddingVertical: 8 },

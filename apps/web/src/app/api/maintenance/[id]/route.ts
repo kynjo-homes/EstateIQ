@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
+import { destroyCloudinaryAssets } from '@/lib/cloudinaryServer'
 
 export async function PATCH(
   req: Request,
@@ -17,18 +18,53 @@ export async function PATCH(
     const resident = await prisma.resident.findUnique({
       where: { userId: session.user.id },
     })
-    if (!resident || !['ADMIN', 'SUPER_ADMIN'].includes(resident.role)) {
+    if (!resident) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    const existing = await prisma.maintenanceRequest.findFirst({
+      where: { id, estateId: resident.estateId },
+    })
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
     const { status, assignedTo } = await req.json()
+    const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(resident.role)
+
+    if (isAdmin) {
+      const updated = await prisma.maintenanceRequest.update({
+        where: { id, estateId: resident.estateId },
+        data: {
+          status:     status     ?? undefined,
+          assignedTo: assignedTo ?? undefined,
+        },
+      })
+      return NextResponse.json(updated)
+    }
+
+    // Residents may only cancel (close) their own requests; workflow status changes are admin-only
+    if (existing.submittedBy !== resident.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (assignedTo !== undefined) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (status !== 'CLOSED') {
+      return NextResponse.json(
+        { error: 'Only administrators can change request status. You may cancel your request instead.' },
+        { status: 403 }
+      )
+    }
+    if (existing.status === 'CLOSED') {
+      return NextResponse.json({ error: 'Request is already closed' }, { status: 400 })
+    }
+
+    await destroyCloudinaryAssets(existing.mediaUrls)
 
     const updated = await prisma.maintenanceRequest.update({
       where: { id, estateId: resident.estateId },
-      data: {
-        status:     status     ?? undefined,
-        assignedTo: assignedTo ?? undefined,
-      },
+      data: { status: 'CLOSED', mediaUrls: [] },
     })
 
     return NextResponse.json(updated)
@@ -54,6 +90,14 @@ export async function DELETE(
     })
     if (!resident || !['ADMIN', 'SUPER_ADMIN'].includes(resident.role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const toRemove = await prisma.maintenanceRequest.findFirst({
+      where: { id, estateId: resident.estateId },
+      select: { mediaUrls: true },
+    })
+    if (toRemove) {
+      await destroyCloudinaryAssets(toRemove.mediaUrls)
     }
 
     await prisma.maintenanceRequest.delete({

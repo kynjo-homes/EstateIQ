@@ -58,6 +58,10 @@ model Estate {
   subscriptionStartedAt  DateTime?
   subscriptionExpiresAt  DateTime?
   paystackReference      String?
+  /// Bank name for resident levy transfers (set by estate admin).
+  duesBankName           String?
+  /// Account number for resident levy transfers (set by estate admin).
+  duesAccountNumber      String?
 }
 
 // ─── UNITS & RESIDENTS ────────────────────────────────────
@@ -136,6 +140,8 @@ model Payment {
   status      PaymentStatus @default(PENDING)
   reference   String?       @unique
   paidAt      DateTime?
+  /// Proof of bank transfer; when set, payment stays PENDING until admin marks PAID.
+  receiptUrl  String?
   createdAt   DateTime      @default(now())
   @@index([levyId])
   @@index([residentId])
@@ -325,6 +331,7 @@ enum VisitorStatus {
   EXPECTED
   ARRIVED
   EXITED
+  DENIED
   CANCELLED
 }
 

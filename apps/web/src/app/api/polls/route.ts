@@ -15,6 +15,8 @@ export async function GET() {
     })
     if (!resident) return NextResponse.json([])
 
+    const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(resident.role)
+
     const polls = await prisma.poll.findMany({
       where: { estateId: resident.estateId },
       include: {
@@ -22,6 +24,13 @@ export async function GET() {
           select: {
             optionIndex: true,
             residentId: true,
+            resident: {
+              select: {
+                firstName: true,
+                lastName:  true,
+                unit:      { select: { number: true, block: true } },
+              },
+            },
           },
         },
       },
@@ -38,7 +47,7 @@ export async function GET() {
       const myVote     = poll.votes.find(v => v.residentId === resident.id)?.optionIndex ?? null
       const isExpired  = new Date(poll.endsAt) < new Date()
 
-      return {
+      const base = {
         ...poll,
         votes: undefined,
         voteCounts,
@@ -47,6 +56,29 @@ export async function GET() {
         myVote,
         isExpired,
       }
+
+      if (!isAdmin) {
+        return base
+      }
+
+      const voters = [...poll.votes]
+        .map(v => ({
+          residentId:  v.residentId,
+          firstName:   v.resident.firstName,
+          lastName:    v.resident.lastName,
+          optionIndex: v.optionIndex,
+          optionLabel: poll.options[v.optionIndex] ?? '',
+          unit:        v.resident.unit
+            ? { number: v.resident.unit.number, block: v.resident.unit.block }
+            : null,
+        }))
+        .sort((a, b) => {
+          const an = `${a.lastName} ${a.firstName}`.toLowerCase()
+          const bn = `${b.lastName} ${b.firstName}`.toLowerCase()
+          return an.localeCompare(bn)
+        })
+
+      return { ...base, voters }
     })
 
     return NextResponse.json(enriched)

@@ -18,6 +18,14 @@ export async function GET() {
     }
 
     const estateId = resident.estateId
+    const isResidentOnly = resident.role === 'RESIDENT'
+    const maintenanceScope = isResidentOnly
+      ? { estateId, submittedBy: resident.id }
+      : { estateId }
+    const visitorScope = isResidentOnly
+      ? { estateId, residentId: resident.id }
+      : { estateId }
+    const startOfToday = new Date(new Date().setHours(0, 0, 0, 0))
 
     const [
       totalResidents,
@@ -55,17 +63,18 @@ export async function GET() {
         select: { status: true, amount: true },
       }),
       prisma.maintenanceRequest.count({
-        where: { estateId, status: { in: ['OPEN', 'ASSIGNED', 'IN_PROGRESS'] } },
+        where: {
+          ...maintenanceScope,
+          status: { in: ['OPEN', 'ASSIGNED', 'IN_PROGRESS'] },
+        },
       }),
       prisma.securityIncident.count({
         where: { estateId, resolvedAt: null },
       }),
       prisma.visitor.count({
         where: {
-          estateId,
-          createdAt: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-          },
+          ...visitorScope,
+          createdAt: { gte: startOfToday },
         },
       }),
       prisma.poll.count({
@@ -81,13 +90,13 @@ export async function GET() {
         select:  { id: true, title: true, createdAt: true },
       }),
       prisma.maintenanceRequest.findMany({
-        where:   { estateId },
+        where:   maintenanceScope,
         orderBy: { createdAt: 'desc' },
         take:    3,
         select:  { id: true, title: true, createdAt: true, status: true },
       }),
       prisma.visitor.findMany({
-        where:   { estateId },
+        where:   visitorScope,
         orderBy: { createdAt: 'desc' },
         take:    3,
         select:  { id: true, name: true, createdAt: true, status: true },
@@ -97,7 +106,8 @@ export async function GET() {
     const totalLevies      = levies.length
     const paidPayments     = payments.filter(p => p.status === 'PAID')
     const totalCollected   = paidPayments.reduce((s, p) => s + p.amount, 0)
-    const totalExpected    = payments.reduce((s, p) => s + p.amount, 0)
+    // Expected dues = per-levy amount × active residents (not raw invoice rows).
+    const totalExpected    = levies.reduce((s, l) => s + l.amount * activeResidents, 0)
     const totalOutstanding = totalExpected - totalCollected
     const collectionRate   = totalExpected > 0
       ? Math.round((totalCollected / totalExpected) * 100)

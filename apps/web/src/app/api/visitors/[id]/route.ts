@@ -21,7 +21,26 @@ export async function PATCH(
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
+    const existing = await prisma.visitor.findFirst({
+      where: { id, estateId: resident.estateId },
+    })
+    if (!existing) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
     const { status } = await req.json()
+    const isStaff = ['ADMIN', 'SUPER_ADMIN', 'SECURITY'].includes(resident.role)
+    const isOwner = existing.residentId === resident.id
+
+    if (!isStaff && !isOwner) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (!isStaff && isOwner && status !== 'CANCELLED') {
+      return NextResponse.json(
+        { error: 'Residents may only cancel their own visitor registrations' },
+        { status: 403 }
+      )
+    }
 
     const visitor = await prisma.visitor.update({
       where: { id, estateId: resident.estateId },
