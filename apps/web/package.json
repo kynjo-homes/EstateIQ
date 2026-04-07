@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:lan": "next dev --hostname 0.0.0.0 -p 3000",
     "build": "next build",
     "typecheck": "tsc --noEmit",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate --schema=../../packages/database/prisma/schema.prisma",
+    "db:generate": "prisma generate --schema=../../packages/database/prisma/schema.prisma",
     "db:migrate": "node --env-file=.env.local ../../node_modules/prisma/build/index.js migrate deploy --schema=../../packages/database/prisma/schema.prisma"
   },
   "dependencies": {

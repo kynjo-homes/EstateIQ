@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import bcrypt from 'bcryptjs'
 import { logger } from '@/lib/logger'
@@ -20,8 +20,8 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
+    const userId = await getAuthUserId()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     const user = await prisma.authUser.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: { id: true, passwordHash: true },
     })
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
 import { getPublicAppOrigin } from '@/lib/appUrl'
@@ -7,10 +7,16 @@ import { sendOnboardingWelcomeEmail } from '@/lib/email'
 import { isValidNigeriaMobileLocal, sanitizeNigeriaPhoneInput } from '@/lib/nigeriaPhone'
 
 export async function POST(req: Request) {
-  const session = await auth()
-  const userId = session?.user?.id
-  const email = session?.user?.email
-  if (!userId || !email) {
+  const userId = await getAuthUserId()
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  const authUser = await prisma.authUser.findUnique({
+    where: { id: userId },
+    select: { email: true },
+  })
+  const email = authUser?.email
+  if (!email) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

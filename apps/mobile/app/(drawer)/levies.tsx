@@ -4,11 +4,10 @@ import {
   } from 'react-native'
   import { useState } from 'react'
   import { useQuery } from '@tanstack/react-query'
-  import { Ionicons } from '@expo/vector-icons'
-  import { router } from 'expo-router'
   import { apiFetch } from '@/lib/api'
-  import ScreenHeader from '@/components/ScreenHeader'
+  import DashboardTopBar from '@/components/DashboardTopBar'
   import EmptyState from '@/components/EmptyState'
+  import { colors, fonts, radius } from '@/lib/theme'
   
   interface Levy {
     id: string
@@ -75,7 +74,7 @@ import {
   
     return (
       <View style={styles.container}>
-        <ScreenHeader title="Levies & Dues" back />
+        <DashboardTopBar title="Levies & Dues" />
         <ScrollView
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
@@ -110,7 +109,7 @@ import {
                   <Text style={styles.progressPct}>{pct}%</Text>
                 </View>
                 <View style={styles.progressBg}>
-                  <View style={[styles.progressFill, { width: `${pct}%` as any, backgroundColor: pct === 100 ? '#16a34a' : overdue ? '#ef4444' : '#2563eb' }]} />
+                  <View style={[styles.progressFill, { width: `${pct}%` as any, backgroundColor: pct === 100 ? colors.brand[600] : overdue ? colors.red[500] : colors.brand[500] }]} />
                 </View>
   
                 <Text style={styles.dueDate}>
@@ -123,7 +122,7 @@ import {
                   disabled={paying === levy.id}
                 >
                   {paying === levy.id
-                    ? <ActivityIndicator size="small" color="#2563eb" />
+                    ? <ActivityIndicator size="small" color={colors.brand[600]} />
                     : <Text style={styles.payBtnText}>View & pay</Text>
                   }
                 </TouchableOpacity>
@@ -136,22 +135,22 @@ import {
   }
   
   const styles = StyleSheet.create({
-    container:     { flex: 1, backgroundColor: '#f9fafb' },
+    container:     { flex: 1, backgroundColor: colors.gray[50] },
     scroll:        { padding: 16, gap: 12, flexGrow: 1 },
-    card:          { backgroundColor: '#fff', borderRadius: 16, padding: 16, borderWidth: 1, borderColor: '#f3f4f6', gap: 10 },
+    card:          { backgroundColor: colors.white, borderRadius: radius.card, padding: 16, borderWidth: 1, borderColor: colors.gray[100], gap: 10 },
     cardTop:       { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
     titleRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-    levyTitle:     { fontSize: 15, fontWeight: '600', color: '#111827' },
-    levyDesc:      { fontSize: 12, color: '#6b7280', marginTop: 2 },
-    amount:        { fontSize: 20, fontWeight: '700', color: '#111827' },
-    overdueBadge:  { backgroundColor: '#fef2f2', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
-    overdueText:   { fontSize: 11, color: '#dc2626', fontWeight: '600' },
+    levyTitle:     { fontFamily: fonts.sansSemiBold, fontSize: 15, color: colors.gray[900] },
+    levyDesc:      { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[500], marginTop: 2 },
+    amount:        { fontFamily: fonts.sansBold, fontSize: 20, color: colors.gray[900] },
+    overdueBadge:  { backgroundColor: colors.red[50], paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.card },
+    overdueText:   { fontFamily: fonts.sansSemiBold, fontSize: 11, color: colors.red[600] },
     progressRow:   { flexDirection: 'row', justifyContent: 'space-between' },
-    progressLabel: { fontSize: 12, color: '#6b7280' },
-    progressPct:   { fontSize: 12, color: '#6b7280' },
-    progressBg:    { height: 6, backgroundColor: '#f3f4f6', borderRadius: 3, overflow: 'hidden' },
+    progressLabel: { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[500] },
+    progressPct:   { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[500] },
+    progressBg:    { height: 6, backgroundColor: colors.gray[100], borderRadius: 3, overflow: 'hidden' },
     progressFill:  { height: 6, borderRadius: 3 },
-    dueDate:       { fontSize: 12, color: '#9ca3af' },
-    payBtn:        { borderWidth: 1, borderColor: '#2563eb', borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-    payBtnText:    { fontSize: 14, color: '#2563eb', fontWeight: '600' },
+    dueDate:       { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[400] },
+    payBtn:        { borderWidth: 1, borderColor: colors.brand[600], borderRadius: radius.button, paddingVertical: 10, alignItems: 'center' },
+    payBtnText:    { fontFamily: fonts.sansSemiBold, fontSize: 14, color: colors.brand[600] },
   })

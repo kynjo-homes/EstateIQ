@@ -5,8 +5,9 @@ import {
   import { useQuery, useQueryClient } from '@tanstack/react-query'
   import { Ionicons } from '@expo/vector-icons'
   import { apiFetch } from '@/lib/api'
-  import ScreenHeader from '@/components/ScreenHeader'
+  import DashboardTopBar from '@/components/DashboardTopBar'
   import EmptyState from '@/components/EmptyState'
+  import { colors, fonts, radius } from '@/lib/theme'
   
   interface Poll {
     id: string
@@ -54,7 +55,7 @@ import {
   
     return (
       <View style={styles.container}>
-        <ScreenHeader title="Polls & Voting" back />
+        <DashboardTopBar title="Polls & Voting" />
         <ScrollView
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
@@ -68,12 +69,12 @@ import {
   
             return (
               <View key={poll.id} style={[styles.card, poll.isExpired && styles.cardExpired]}>
-                <View style={[styles.bar, { backgroundColor: poll.isExpired ? '#d1d5db' : '#2563eb' }]} />
+                <View style={[styles.bar, { backgroundColor: poll.isExpired ? colors.gray[300] : colors.brand[600] }]} />
                 <View style={styles.cardContent}>
                   <View style={styles.cardHeader}>
                     <Text style={styles.question}>{poll.question}</Text>
                     <View style={styles.metaRow}>
-                      <Text style={[styles.timer, { color: poll.isExpired ? '#9ca3af' : '#2563eb' }]}>
+                      <Text style={[styles.timer, { color: poll.isExpired ? colors.gray[400] : colors.brand[600] }]}>
                         {poll.isExpired ? '🔒 Ended' : `⏰ ${timeRemaining(poll.endsAt)}`}
                       </Text>
                       <Text style={styles.voteCount}>{poll.totalVotes} votes</Text>
@@ -105,13 +106,13 @@ import {
                             <View
                               style={[
                                 styles.optionFill,
-                                { width: `${percent}%` as any, backgroundColor: isMyVote ? '#dbeafe' : '#f3f4f6' }
+                                { width: `${percent}%` as any, backgroundColor: isMyVote ? colors.brand[100] : colors.gray[100] }
                               ]}
                             />
                           )}
                           <View style={styles.optionRow}>
                             <View style={styles.optionLeft}>
-                              {isMyVote && <Ionicons name="checkmark-circle" size={16} color="#2563eb" />}
+                              {isMyVote && <Ionicons name="checkmark-circle" size={16} color={colors.brand[600]} />}
                               <Text style={[styles.optionText, isMyVote && styles.optionTextSelected]}>
                                 {option}
                               </Text>
@@ -140,27 +141,27 @@ import {
   }
   
   const styles = StyleSheet.create({
-    container:          { flex: 1, backgroundColor: '#f9fafb' },
+    container:          { flex: 1, backgroundColor: colors.gray[50] },
     scroll:             { padding: 16, gap: 12, flexGrow: 1 },
-    card:               { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#e5e7eb' },
+    card:               { backgroundColor: colors.white, borderRadius: radius.card, overflow: 'hidden', borderWidth: 1, borderColor: colors.gray[200] },
     cardExpired:        { opacity: 0.8 },
     bar:                { height: 4 },
     cardContent:        { padding: 14, gap: 12 },
     cardHeader:         { gap: 6 },
-    question:           { fontSize: 15, fontWeight: '600', color: '#111827', lineHeight: 22 },
+    question:           { fontFamily: fonts.sansSemiBold, fontSize: 15, color: colors.gray[900], lineHeight: 22 },
     metaRow:            { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
-    timer:              { fontSize: 12, fontWeight: '500' },
-    voteCount:          { fontSize: 12, color: '#9ca3af' },
-    anon:               { fontSize: 11, color: '#9ca3af', backgroundColor: '#f3f4f6', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 },
+    timer:              { fontFamily: fonts.sansMedium, fontSize: 12 },
+    voteCount:          { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[400] },
+    anon:               { fontFamily: fonts.sans, fontSize: 11, color: colors.gray[400], backgroundColor: colors.gray[100], paddingHorizontal: 6, paddingVertical: 2, borderRadius: radius.card },
     options:            { gap: 8 },
-    option:             { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, overflow: 'hidden', position: 'relative', minHeight: 44 },
-    optionSelected:     { borderColor: '#93c5fd', backgroundColor: '#eff6ff' },
+    option:             { borderWidth: 1, borderColor: colors.gray[200], borderRadius: radius.button, overflow: 'hidden', position: 'relative', minHeight: 44 },
+    optionSelected:     { borderColor: colors.brand[300], backgroundColor: colors.brand[50] },
     optionDisabled:     {},
-    optionFill:         { position: 'absolute', top: 0, left: 0, bottom: 0, borderRadius: 10 },
+    optionFill:         { position: 'absolute', top: 0, left: 0, bottom: 0, borderRadius: radius.button },
     optionRow:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10 },
     optionLeft:         { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
-    optionText:         { fontSize: 14, color: '#374151' },
-    optionTextSelected: { color: '#1d4ed8', fontWeight: '500' },
-    optionPct:          { fontSize: 13, color: '#9ca3af', minWidth: 36, textAlign: 'right' },
-    tapHint:            { fontSize: 12, color: '#9ca3af', textAlign: 'center' },
+    optionText:         { fontFamily: fonts.sans, fontSize: 14, color: colors.gray[700] },
+    optionTextSelected: { fontFamily: fonts.sansMedium, color: colors.brand[700] },
+    optionPct:          { fontFamily: fonts.sans, fontSize: 13, color: colors.gray[400], minWidth: 36, textAlign: 'right' },
+    tapHint:            { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[400], textAlign: 'center' },
   })

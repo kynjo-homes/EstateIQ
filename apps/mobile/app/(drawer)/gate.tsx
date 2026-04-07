@@ -5,8 +5,9 @@ import {
   } from 'react-native'
   import { useState } from 'react'
   import { Ionicons } from '@expo/vector-icons'
-  import { useSafeAreaInsets } from 'react-native-safe-area-context'
   import { apiFetch } from '@/lib/api'
+  import DashboardTopBar from '@/components/DashboardTopBar'
+  import { radius } from '@/lib/theme'
   
   interface CheckinResult {
     visitorName:  string
@@ -16,7 +17,6 @@ import {
   }
   
   export default function GateTab() {
-    const insets = useSafeAreaInsets()
     const [code, setCode]           = useState('')
     const [loading, setLoading]     = useState(false)
     const [result, setResult]       = useState<CheckinResult | null>(null)
@@ -76,15 +76,12 @@ import {
     }
   
     return (
-      <ScrollView
-        style={[styles.container, { paddingTop: insets.top }]}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <Ionicons name="shield-checkmark" size={22} color="#fff" />
-          <Text style={styles.headerTitle}>Gate check-in</Text>
-        </View>
-  
+      <View style={styles.root}>
+        <DashboardTopBar title="Gate scanner" />
+        <ScrollView
+          style={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.content}>
   
           {/* Check-in section */}
@@ -218,6 +215,7 @@ import {
   
         </View>
       </ScrollView>
+      </View>
     )
   }
   
@@ -240,17 +238,16 @@ import {
   }
   
   const styles = StyleSheet.create({
+    root:           { flex: 1, backgroundColor: '#f9fafb' },
     container:      { flex: 1, backgroundColor: '#f9fafb' },
-    header:         { backgroundColor: '#16a34a', flexDirection: 'row', alignItems: 'center', gap: 8, padding: 20, paddingBottom: 24 },
-    headerTitle:    { fontSize: 20, fontWeight: '700', color: '#fff' },
     content:        { padding: 16, gap: 16 },
-    section:        { backgroundColor: '#fff', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#f3f4f6', gap: 12 },
+    section:        { backgroundColor: '#fff', borderRadius: radius.card, padding: 20, borderWidth: 1, borderColor: '#f3f4f6', gap: 12 },
     sectionTitle:   { fontSize: 16, fontWeight: '600', color: '#111827' },
     sectionSub:     { fontSize: 13, color: '#6b7280', marginTop: -8 },
-    codeInput:      { borderWidth: 2, borderColor: '#e5e7eb', borderRadius: 14, padding: 16, fontSize: 32, fontWeight: '700', color: '#111827', letterSpacing: 12, textAlign: 'center' },
-    errorBox:       { flexDirection: 'row', gap: 8, backgroundColor: '#fef2f2', borderRadius: 10, padding: 12 },
+    codeInput:      { borderWidth: 2, borderColor: '#e5e7eb', borderRadius: radius.card, padding: 16, fontSize: 32, fontWeight: '700', color: '#111827', letterSpacing: 12, textAlign: 'center' },
+    errorBox:       { flexDirection: 'row', gap: 8, backgroundColor: '#fef2f2', borderRadius: radius.card, padding: 12 },
     errorText:      { flex: 1, fontSize: 13, color: '#dc2626' },
-    successBox:     { backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0', borderRadius: 14, padding: 14, gap: 10 },
+    successBox:     { backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0', borderRadius: radius.card, padding: 14, gap: 10 },
     successHeader:  { flexDirection: 'row', alignItems: 'center', gap: 6 },
     successTitle:   { fontSize: 14, fontWeight: '600', color: '#16a34a' },
     resultRows:     { gap: 6 },
@@ -258,15 +255,15 @@ import {
     resultLabel:    { fontSize: 13, color: '#6b7280' },
     resultValue:    { fontSize: 13, fontWeight: '500', color: '#166534' },
     notifiedText:   { fontSize: 12, color: '#16a34a' },
-    denyBox:        { backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fcd34d', borderRadius: 14, padding: 14, gap: 10 },
+    denyBox:        { backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fcd34d', borderRadius: radius.card, padding: 14, gap: 10 },
     denyHeader:     { flexDirection: 'row', alignItems: 'center', gap: 6 },
     denyTitle:      { fontSize: 14, fontWeight: '600', color: '#92400e' },
     denyResultLabel:{ fontSize: 13, color: '#a16207' },
     denyResultValue: { fontSize: 13, fontWeight: '500', color: '#78350f' },
     denyNotifiedText: { fontSize: 12, color: '#b45309' },
     checkinActions: { flexDirection: 'row', gap: 10 },
-    checkinBtn:     { flex: 1, backgroundColor: '#16a34a', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-    denyBtn:        { flex: 1, backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+    checkinBtn:     { flex: 1, backgroundColor: '#16a34a', borderRadius: radius.button, paddingVertical: 14, alignItems: 'center' },
+    denyBtn:        { flex: 1, backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: radius.button, paddingVertical: 14, alignItems: 'center' },
     denyBtnText:    { color: '#991b1b', fontSize: 15, fontWeight: '600' },
     checkinBtnText: { color: '#fff', fontSize: 15, fontWeight: '600' },
     btnDisabled:    { opacity: 0.5 },
@@ -275,7 +272,7 @@ import {
     divider:        { flexDirection: 'row', alignItems: 'center', gap: 10 },
     dividerLine:    { flex: 1, height: 1, backgroundColor: '#e5e7eb' },
     dividerText:    { fontSize: 12, color: '#9ca3af' },
-    input:          { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 12, fontSize: 14, color: '#111827', backgroundColor: '#f9fafb' },
-    checkoutBtn:    { backgroundColor: '#374151', borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+    input:          { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: radius.card, padding: 12, fontSize: 14, color: '#111827', backgroundColor: '#f9fafb' },
+    checkoutBtn:    { backgroundColor: '#374151', borderRadius: radius.button, paddingVertical: 12, alignItems: 'center' },
     checkoutBtnText:{ color: '#fff', fontSize: 14, fontWeight: '600' },
   })

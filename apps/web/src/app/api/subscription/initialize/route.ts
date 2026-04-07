@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { PLAN_PRICE_KOBO } from '@/lib/plans'
 
@@ -19,13 +19,13 @@ function pickCustomerEmail(
 
 export async function POST() {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
+    const userId = await getAuthUserId()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const resident = await prisma.resident.findUnique({
-      where:   { userId: session.user.id },
+      where:   { userId },
       include: { estate: true },
     })
 
@@ -34,14 +34,10 @@ export async function POST() {
     }
 
     const authUser = await prisma.authUser.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
     })
 
-    const customerEmail = pickCustomerEmail(
-      authUser?.email,
-      session.user.email,
-      resident.email
-    )
+    const customerEmail = pickCustomerEmail(authUser?.email, resident.email)
     if (!customerEmail) {
       return NextResponse.json(
         { error: 'No valid email on your account. Update your profile or contact support.' },

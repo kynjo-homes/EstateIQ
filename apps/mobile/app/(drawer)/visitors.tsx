@@ -6,9 +6,10 @@ import {
   import { useState } from 'react'
   import { useQuery, useQueryClient } from '@tanstack/react-query'
   import { Ionicons } from '@expo/vector-icons'
-  import { useSafeAreaInsets } from 'react-native-safe-area-context'
   import { apiFetch } from '@/lib/api'
   import EmptyState from '@/components/EmptyState'
+  import { colors, fonts, radius } from '@/lib/theme'
+  import DashboardTopBar from '@/components/DashboardTopBar'
   
   type VisitorStatus = 'EXPECTED' | 'ARRIVED' | 'EXITED' | 'DENIED' | 'CANCELLED'
   
@@ -25,15 +26,14 @@ import {
   }
   
   const STATUS_COLORS: Record<VisitorStatus, { bg: string; text: string }> = {
-    EXPECTED:  { bg: '#eff6ff', text: '#2563eb' },
-    ARRIVED:   { bg: '#f0fdf4', text: '#16a34a' },
-    EXITED:    { bg: '#f3f4f6', text: '#6b7280' },
-    DENIED:    { bg: '#fffbeb', text: '#b45309' },
-    CANCELLED: { bg: '#fef2f2', text: '#dc2626' },
+    EXPECTED:  { bg: colors.brand[50], text: colors.brand[600] },
+    ARRIVED:   { bg: colors.brand[50], text: colors.brand[700] },
+    EXITED:    { bg: colors.gray[100], text: colors.gray[500] },
+    DENIED:    { bg: colors.amber[50], text: '#b45309' },
+    CANCELLED: { bg: colors.red[50], text: colors.red[600] },
   }
   
   export default function VisitorsTab() {
-    const insets       = useSafeAreaInsets()
     const queryClient  = useQueryClient()
     const [showModal, setShowModal] = useState(false)
     const [form, setForm] = useState({ name: '', phone: '', purpose: '', expectedAt: '' })
@@ -85,18 +85,19 @@ import {
     }
   
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Visitors</Text>
-          <TouchableOpacity
-            style={styles.addBtn}
-            onPress={() => setShowModal(true)}
-          >
-            <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addBtnText}>Register</Text>
-          </TouchableOpacity>
-        </View>
-  
+      <View style={styles.container}>
+        <DashboardTopBar
+          title="Visitors"
+          right={
+            <TouchableOpacity
+              style={styles.headerRegister}
+              onPress={() => setShowModal(true)}
+              hitSlop={8}
+            >
+              <Ionicons name="add-circle-outline" size={26} color={colors.brand[600]} />
+            </TouchableOpacity>
+          }
+        />
         <ScrollView
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
@@ -216,7 +217,7 @@ import {
               </View>
   
               <View style={styles.infoBox}>
-                <Ionicons name="information-circle-outline" size={16} color="#2563eb" />
+                <Ionicons name="information-circle-outline" size={16} color={colors.brand[600]} />
                 <Text style={styles.infoText}>
                   A 6-digit access code will be generated. Share it with your visitor for gate entry.
                 </Text>
@@ -240,36 +241,33 @@ import {
   }
   
   const styles = StyleSheet.create({
-    container:    { flex: 1, backgroundColor: '#f9fafb' },
-    header:       { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    headerTitle:  { fontSize: 20, fontWeight: '700', color: '#111827' },
-    addBtn:       { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#2563eb', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10 },
-    addBtnText:   { color: '#fff', fontSize: 13, fontWeight: '600' },
+    container:    { flex: 1, backgroundColor: colors.gray[50] },
+    headerRegister: { paddingVertical: 4 },
     scroll:       { padding: 16, gap: 10, flexGrow: 1 },
-    card:         { backgroundColor: '#fff', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: '#f3f4f6' },
+    card:         { backgroundColor: colors.white, borderRadius: radius.card, padding: 14, borderWidth: 1, borderColor: colors.gray[100] },
     cardRow:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-    avatar:       { width: 40, height: 40, borderRadius: 20, backgroundColor: '#dbeafe', alignItems: 'center', justifyContent: 'center' },
-    avatarText:   { fontSize: 16, fontWeight: '700', color: '#2563eb' },
+    avatar:       { width: 40, height: 40, borderRadius: 20, backgroundColor: colors.brand[100], alignItems: 'center', justifyContent: 'center' },
+    avatarText:   { fontFamily: fonts.sansBold, fontSize: 16, color: colors.brand[600] },
     cardInfo:     { flex: 1 },
     cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-    cardName:     { fontSize: 15, fontWeight: '600', color: '#111827' },
-    statusBadge:  { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
-    statusText:   { fontSize: 11, fontWeight: '600' },
-    cardSub:      { fontSize: 12, color: '#6b7280', marginTop: 3 },
-    codeBox:      { backgroundColor: '#111827', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-    codeText:     { color: '#fff', fontFamily: 'monospace', fontSize: 16, fontWeight: '700', letterSpacing: 2 },
-    cancelBtn:    { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#f3f4f6', alignItems: 'center' },
-    cancelText:   { fontSize: 13, color: '#dc2626' },
-    modal:        { flex: 1, backgroundColor: '#fff' },
-    modalHeader:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    modalTitle:   { fontSize: 18, fontWeight: '600', color: '#111827' },
+    cardName:     { fontFamily: fonts.sansSemiBold, fontSize: 15, color: colors.gray[900] },
+    statusBadge:  { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.card },
+    statusText:   { fontFamily: fonts.sansSemiBold, fontSize: 11 },
+    cardSub:      { fontFamily: fonts.sans, fontSize: 12, color: colors.gray[500], marginTop: 3 },
+    codeBox:      { backgroundColor: colors.gray[900], paddingHorizontal: 10, paddingVertical: 6, borderRadius: radius.button },
+    codeText:     { color: colors.white, fontFamily: 'monospace', fontSize: 16, fontWeight: '700', letterSpacing: 2 },
+    cancelBtn:    { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.gray[100], alignItems: 'center' },
+    cancelText:   { fontFamily: fonts.sans, fontSize: 13, color: colors.red[600] },
+    modal:        { flex: 1, backgroundColor: colors.white },
+    modalHeader:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: colors.gray[100] },
+    modalTitle:   { fontFamily: fonts.sansSemiBold, fontSize: 18, color: colors.gray[900] },
     modalBody:    { padding: 20 },
     field:        { marginBottom: 18 },
-    label:        { fontSize: 13, fontWeight: '500', color: '#374151', marginBottom: 6 },
-    input:        { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827', backgroundColor: '#f9fafb' },
-    hint:         { fontSize: 11, color: '#9ca3af', marginTop: 4 },
-    infoBox:      { flexDirection: 'row', gap: 8, backgroundColor: '#eff6ff', borderRadius: 10, padding: 12, marginBottom: 20 },
-    infoText:     { flex: 1, fontSize: 13, color: '#2563eb', lineHeight: 18 },
-    submitBtn:    { backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-    submitText:   { color: '#fff', fontSize: 15, fontWeight: '600' },
+    label:        { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.gray[700], marginBottom: 6 },
+    input:        { borderWidth: 1, borderColor: colors.gray[200], borderRadius: radius.card, padding: 12, fontSize: 15, fontFamily: fonts.sans, color: colors.gray[900], backgroundColor: colors.gray[50] },
+    hint:         { fontFamily: fonts.sans, fontSize: 11, color: colors.gray[400], marginTop: 4 },
+    infoBox:      { flexDirection: 'row', gap: 8, backgroundColor: colors.brand[50], borderRadius: radius.card, padding: 12, marginBottom: 20 },
+    infoText:     { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: colors.brand[700], lineHeight: 18 },
+    submitBtn:    { backgroundColor: colors.brand[600], borderRadius: radius.button, paddingVertical: 14, alignItems: 'center' },
+    submitText:   { fontFamily: fonts.sansSemiBold, color: colors.white, fontSize: 15 },
   })

@@ -7,8 +7,9 @@ import {
   import { useQuery, useQueryClient } from '@tanstack/react-query'
   import { Ionicons } from '@expo/vector-icons'
   import { apiFetch } from '@/lib/api'
-  import ScreenHeader from '@/components/ScreenHeader'
+  import DashboardTopBar from '@/components/DashboardTopBar'
   import EmptyState from '@/components/EmptyState'
+  import { radius } from '@/lib/theme'
   
   type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
   
@@ -62,11 +63,10 @@ import {
   
     return (
       <View style={styles.container}>
-        <ScreenHeader
+        <DashboardTopBar
           title="Security Incidents"
-          back
           right={
-            <TouchableOpacity onPress={() => setShowModal(true)}>
+            <TouchableOpacity onPress={() => setShowModal(true)} hitSlop={8}>
               <Ionicons name="add-circle" size={26} color="#dc2626" />
             </TouchableOpacity>
           }
@@ -155,18 +155,18 @@ import {
   const styles = StyleSheet.create({
     container:     { flex: 1, backgroundColor: '#f9fafb' },
     scroll:        { padding: 16, gap: 10, flexGrow: 1 },
-    card:          { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
+    card:          { backgroundColor: '#fff', borderRadius: radius.card, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
     bar:           { height: 4 },
     cardContent:   { padding: 14, gap: 8 },
     cardTop:       { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
     incTitle:      { flex: 1, fontSize: 15, fontWeight: '600', color: '#111827' },
-    badge:         { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+    badge:         { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.card },
     badgeText:     { fontSize: 11, fontWeight: '600' },
     incDesc:       { fontSize: 13, color: '#6b7280', lineHeight: 18 },
     cardFooter:    { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
     location:      { fontSize: 12, color: '#6b7280', flex: 1 },
     date:          { fontSize: 12, color: '#9ca3af' },
-    resolvedBadge: { backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 20 },
+    resolvedBadge: { backgroundColor: '#f0fdf4', paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.card },
     resolvedText:  { fontSize: 11, color: '#16a34a', fontWeight: '600' },
     modal:         { flex: 1, backgroundColor: '#fff' },
     modalHeader:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
@@ -174,10 +174,10 @@ import {
     modalBody:     { padding: 20 },
     field:         { marginBottom: 18 },
     label:         { fontSize: 13, fontWeight: '500', color: '#374151', marginBottom: 6 },
-    input:         { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827', backgroundColor: '#f9fafb' },
+    input:         { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: radius.card, padding: 12, fontSize: 15, color: '#111827', backgroundColor: '#f9fafb' },
     sevRow:        { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-    sevBtn:        { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' },
+    sevBtn:        { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.button, borderWidth: 1, borderColor: '#e5e7eb', backgroundColor: '#fff' },
     sevBtnText:    { fontSize: 13, color: '#374151' },
-    submitBtn:     { backgroundColor: '#dc2626', borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
+    submitBtn:     { backgroundColor: '#dc2626', borderRadius: radius.button, paddingVertical: 14, alignItems: 'center', marginTop: 8 },
     submitText:    { color: '#fff', fontSize: 15, fontWeight: '600' },
   })

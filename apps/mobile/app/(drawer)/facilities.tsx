@@ -7,8 +7,9 @@ import {
   import { useQuery, useQueryClient } from '@tanstack/react-query'
   import { Ionicons } from '@expo/vector-icons'
   import { apiFetch } from '@/lib/api'
-  import ScreenHeader from '@/components/ScreenHeader'
+  import DashboardTopBar from '@/components/DashboardTopBar'
   import EmptyState from '@/components/EmptyState'
+  import { colors, fonts, radius } from '@/lib/theme'
   
   interface Facility {
     id: string
@@ -59,7 +60,7 @@ import {
   
     return (
       <View style={styles.container}>
-        <ScreenHeader title="Facilities" back />
+        <DashboardTopBar title="Facilities" />
         <ScrollView
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
@@ -119,7 +120,7 @@ import {
                 <TextInput style={styles.input} value={form.endTime} onChangeText={t => setForm(p => ({ ...p, endTime: t }))} placeholder="YYYY-MM-DD HH:MM" placeholderTextColor="#9ca3af" />
               </View>
               <View style={styles.infoBox}>
-                <Ionicons name="information-circle-outline" size={16} color="#2563eb" />
+                <Ionicons name="information-circle-outline" size={16} color={colors.brand[600]} />
                 <Text style={styles.infoText}>
                   {booking?.feePerSlot ? `Fee: ${fmt(booking.feePerSlot)} per slot` : 'This facility is free to book.'}
                 </Text>
@@ -135,26 +136,26 @@ import {
   }
   
   const styles = StyleSheet.create({
-    container:     { flex: 1, backgroundColor: '#f9fafb' },
+    container:     { flex: 1, backgroundColor: colors.gray[50] },
     scroll:        { padding: 16, gap: 12, flexGrow: 1 },
-    card:          { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
-    cardHeader:    { flexDirection: 'row', padding: 14, gap: 10, backgroundColor: '#2563eb' },
-    facilityName:  { fontSize: 16, fontWeight: '700', color: '#fff' },
-    facilityDesc:  { fontSize: 12, color: '#bfdbfe', marginTop: 2 },
+    card:          { backgroundColor: colors.white, borderRadius: radius.card, overflow: 'hidden', borderWidth: 1, borderColor: colors.gray[100] },
+    cardHeader:    { flexDirection: 'row', padding: 14, gap: 10, backgroundColor: colors.brand[600] },
+    facilityName:  { fontFamily: fonts.sansBold, fontSize: 16, color: colors.white },
+    facilityDesc:  { fontFamily: fonts.sans, fontSize: 12, color: colors.brand[100], marginTop: 2 },
     metaRow:       { flexDirection: 'row', gap: 14, padding: 14, flexWrap: 'wrap' },
     metaItem:      { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    metaText:      { fontSize: 13, color: '#6b7280' },
-    bookBtn:       { margin: 14, marginTop: 0, backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
-    bookBtnText:   { color: '#fff', fontSize: 14, fontWeight: '600' },
-    modal:         { flex: 1, backgroundColor: '#fff' },
-    modalHeader:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    modalTitle:    { fontSize: 18, fontWeight: '600', color: '#111827' },
+    metaText:      { fontFamily: fonts.sans, fontSize: 13, color: colors.gray[500] },
+    bookBtn:       { margin: 14, marginTop: 0, backgroundColor: colors.brand[600], borderRadius: radius.button, paddingVertical: 12, alignItems: 'center' },
+    bookBtnText:   { fontFamily: fonts.sansSemiBold, color: colors.white, fontSize: 14 },
+    modal:         { flex: 1, backgroundColor: colors.white },
+    modalHeader:   { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1, borderBottomColor: colors.gray[100] },
+    modalTitle:    { fontFamily: fonts.sansSemiBold, fontSize: 18, color: colors.gray[900] },
     modalBody:     { padding: 20 },
     field:         { marginBottom: 18 },
-    label:         { fontSize: 13, fontWeight: '500', color: '#374151', marginBottom: 6 },
-    input:         { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 10, padding: 12, fontSize: 15, color: '#111827', backgroundColor: '#f9fafb' },
-    infoBox:       { flexDirection: 'row', gap: 8, backgroundColor: '#eff6ff', borderRadius: 10, padding: 12, marginBottom: 20 },
-    infoText:      { flex: 1, fontSize: 13, color: '#2563eb' },
-    submitBtn:     { backgroundColor: '#2563eb', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-    submitText:    { color: '#fff', fontSize: 15, fontWeight: '600' },
+    label:         { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.gray[700], marginBottom: 6 },
+    input:         { borderWidth: 1, borderColor: colors.gray[200], borderRadius: radius.card, padding: 12, fontSize: 15, fontFamily: fonts.sans, color: colors.gray[900], backgroundColor: colors.gray[50] },
+    infoBox:       { flexDirection: 'row', gap: 8, backgroundColor: colors.brand[50], borderRadius: radius.card, padding: 12, marginBottom: 20 },
+    infoText:      { flex: 1, fontFamily: fonts.sans, fontSize: 13, color: colors.brand[700] },
+    submitBtn:     { backgroundColor: colors.brand[600], borderRadius: radius.button, paddingVertical: 14, alignItems: 'center' },
+    submitText:    { fontFamily: fonts.sansSemiBold, color: colors.white, fontSize: 15 },
   })

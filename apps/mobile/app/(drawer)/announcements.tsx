@@ -5,9 +5,10 @@ import {
   import { useState } from 'react'
   import { useQuery } from '@tanstack/react-query'
   import { Ionicons } from '@expo/vector-icons'
-  import { useSafeAreaInsets } from 'react-native-safe-area-context'
   import { apiFetch } from '@/lib/api'
   import EmptyState from '@/components/EmptyState'
+  import { colors, fonts, radius } from '@/lib/theme'
+  import DashboardTopBar from '@/components/DashboardTopBar'
   
   type Priority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
   
@@ -20,10 +21,10 @@ import {
   }
   
   const PRIORITY_COLORS: Record<Priority, { bar: string; badge: string; text: string }> = {
-    LOW:    { bar: '#d1d5db', badge: '#f3f4f6', text: '#6b7280' },
-    NORMAL: { bar: '#60a5fa', badge: '#eff6ff', text: '#2563eb' },
-    HIGH:   { bar: '#fbbf24', badge: '#fffbeb', text: '#d97706' },
-    URGENT: { bar: '#ef4444', badge: '#fef2f2', text: '#dc2626' },
+    LOW:    { bar: colors.gray[300], badge: colors.gray[100], text: colors.gray[500] },
+    NORMAL: { bar: colors.brand[500], badge: colors.brand[50], text: colors.brand[600] },
+    HIGH:   { bar: '#fbbf24', badge: colors.amber[50], text: colors.amber[600] },
+    URGENT: { bar: colors.red[500], badge: colors.red[50], text: colors.red[600] },
   }
   
   function timeAgo(iso: string) {
@@ -37,7 +38,6 @@ import {
   }
   
   export default function AnnouncementsTab() {
-    const insets = useSafeAreaInsets()
     const [expanded, setExpanded] = useState<string | null>(null)
   
     const { data, isLoading, refetch } = useQuery({
@@ -49,11 +49,8 @@ import {
     })
   
     return (
-      <View style={[styles.container, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Announcements</Text>
-        </View>
-  
+      <View style={styles.container}>
+        <DashboardTopBar title="Announcements" />
         <ScrollView
           contentContainerStyle={styles.scroll}
           refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
@@ -109,18 +106,16 @@ import {
   }
   
   const styles = StyleSheet.create({
-    container:   { flex: 1, backgroundColor: '#f9fafb' },
-    header:      { backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
-    headerTitle: { fontSize: 20, fontWeight: '700', color: '#111827' },
+    container:   { flex: 1, backgroundColor: colors.gray[50] },
     scroll:      { padding: 16, gap: 12, flexGrow: 1 },
-    card:        { backgroundColor: '#fff', borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: '#f3f4f6' },
+    card:        { backgroundColor: colors.white, borderRadius: radius.card, overflow: 'hidden', borderWidth: 1, borderColor: colors.gray[100] },
     bar:         { height: 4 },
     cardContent: { padding: 14 },
     cardTop:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-    badge:       { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-    badgeText:   { fontSize: 11, fontWeight: '600' },
-    time:        { fontSize: 11, color: '#9ca3af' },
-    cardTitle:   { fontSize: 15, fontWeight: '600', color: '#111827', marginBottom: 6 },
-    cardBody:    { fontSize: 14, color: '#4b5563', lineHeight: 20 },
-    readMore:    { fontSize: 13, color: '#2563eb', fontWeight: '500', marginTop: 6 },
+    badge:       { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.card },
+    badgeText:   { fontFamily: fonts.sansSemiBold, fontSize: 11 },
+    time:        { fontFamily: fonts.sans, fontSize: 11, color: colors.gray[400] },
+    cardTitle:   { fontFamily: fonts.sansSemiBold, fontSize: 15, color: colors.gray[900], marginBottom: 6 },
+    cardBody:    { fontFamily: fonts.sans, fontSize: 14, color: colors.gray[600], lineHeight: 20 },
+    readMore:    { fontFamily: fonts.sansMedium, fontSize: 13, color: colors.brand[600], marginTop: 6 },
   })

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getAuthUserId } from '@/lib/auth-request'
 import { destroyCloudinaryAssets, isCloudinaryUrlOwnedByApp } from '@/lib/cloudinaryServer'
 import { logger } from '@/lib/logger'
 
@@ -7,8 +7,8 @@ const MAX_URLS = 20
 
 export async function POST(req: Request) {
   try {
-    const session = await auth()
-    if (!session?.user?.id) {
+    const userId = await getAuthUserId()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

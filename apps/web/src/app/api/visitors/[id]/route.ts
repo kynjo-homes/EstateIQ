@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
 
@@ -9,13 +9,13 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params
-    const session = await auth()
-    if (!session?.user?.id) {
+    const userId = await getAuthUserId()
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const resident = await prisma.resident.findUnique({
-      where: { userId: session.user.id },
+      where: { userId },
     })
     if (!resident) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
