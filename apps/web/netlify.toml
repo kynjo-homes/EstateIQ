@@ -17,6 +17,8 @@
   # Set in Netlify UI (Site → Environment variables), not in this file: DATABASE_URL, AUTH_SECRET,
   # NEXTAUTH_URL must match the exact origin users use (https://www.kynjo.homes vs https://kynjo.homes).
   # Mismatch breaks sign-in cookies / CSRF. Prefer one canonical host + redirect the other in Netlify/DNS.
+  # Google sign-in: set AUTH_GOOGLE_ID + AUTH_GOOGLE_SECRET (or GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET).
+  # If omitted, Google is disabled; email/password still works (see auth.config.ts).
   # Outbound mail: SMTP_* or MAILER_SMTP_* (password reset + invites use both).
   #
   # DATABASE_URL: use your hosted Postgres URL (e.g. Railway). Scope must include Functions (or "All
