@@ -1,7 +1,7 @@
 'use server'
 
 import { signIn } from '@/lib/auth'
-import { AuthError } from 'next-auth'
+import { CredentialsSignin } from 'next-auth'
 
 export type LoginState = { error: string } | null
 
@@ -40,7 +40,8 @@ export async function loginAction(
     })
   } catch (error) {
     if (isNextRedirect(error)) throw error
-    if (error instanceof AuthError) {
+    // Only wrong credentials / failed authorize(). Other AuthErrors (e.g. misconfig) must surface.
+    if (error instanceof CredentialsSignin) {
       return { error: 'Invalid email or password' }
     }
     throw error

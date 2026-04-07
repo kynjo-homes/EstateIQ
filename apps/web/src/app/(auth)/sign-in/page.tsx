@@ -12,13 +12,17 @@ import {
 } from '@/components/auth/TurnstileWidget'
 import { loginAction, type LoginState } from './actions'
 
+/**
+ * Use uncontrolled email/password (name + no value=) so FormData in Server Actions
+ * matches the DOM. Controlled fields have been observed to submit empty values to
+ * the action on some production builds, which always yields "Invalid email or password".
+ */
 export default function SignInPage() {
   const [state, formAction, isPending] = useActionState(
     loginAction,
     null as LoginState
   )
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [formKey, setFormKey] = useState(0)
   const [showPw, setShowPw] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const turnstileRef = useRef<TurnstileInstance>(null)
@@ -27,6 +31,7 @@ export default function SignInPage() {
 
   useEffect(() => {
     if (state?.error) {
+      setFormKey(k => k + 1)
       turnstileRef.current?.reset()
       setTurnstileToken(null)
     }
@@ -53,7 +58,7 @@ export default function SignInPage() {
           </div>
         )}
 
-        <form action={formAction} className="space-y-4">
+        <form key={formKey} action={formAction} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email address
@@ -61,9 +66,8 @@ export default function SignInPage() {
             <input
               name="email"
               type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
               required
+              autoComplete="email"
               autoFocus
               placeholder="you@example.com"
               className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -86,9 +90,8 @@ export default function SignInPage() {
               <input
                 name="password"
                 type={showPw ? 'text' : 'password'}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 placeholder="Your password"
                 className="w-full border border-gray-200 rounded px-3 py-2.5 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
@@ -110,12 +113,7 @@ export default function SignInPage() {
 
           <button
             type="submit"
-            disabled={
-              isPending ||
-              !email ||
-              !password ||
-              (needTurnstile && !turnstileToken)
-            }
+            disabled={isPending || (needTurnstile && !turnstileToken)}
             className="w-full bg-green-600 text-white rounded py-2.5 text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors flex items-center justify-center gap-2 mt-2"
           >
             {isPending ? (
