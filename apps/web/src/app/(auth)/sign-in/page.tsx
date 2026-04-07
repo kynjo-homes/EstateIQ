@@ -1,5 +1,5 @@
 'use client'
-import { signIn } from 'next-auth/react'
+import { getSession, signIn } from 'next-auth/react'
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -48,7 +48,12 @@ export default function SignInPage() {
       turnstileRef.current?.reset()
       setTurnstileToken(null)
     } else {
+      // Credentials + redirect:false: client session can lag until refetched; production
+      // (HTTPS / Netlify) is stricter than localhost about the next navigation seeing the cookie.
+      await getSession()
+      router.refresh()
       router.push('/dashboard')
+      setLoading(false)
     }
   }
 

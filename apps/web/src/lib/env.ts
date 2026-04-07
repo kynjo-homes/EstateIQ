@@ -40,5 +40,15 @@ const required = [
       if (weakSecret < 32) {
         throw new Error('AUTH_SECRET must be at least 32 characters in production.')
       }
+
+      const turnstileSecret = Boolean(process.env.TURNSTILE_SECRET_KEY?.trim())
+      const turnstileSite = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim())
+      if (turnstileSecret && !turnstileSite) {
+        throw new Error(
+          'TURNSTILE_SECRET_KEY is set but NEXT_PUBLIC_TURNSTILE_SITE_KEY is missing. ' +
+            'Add the public site key to Netlify build environment variables (same as local .env) and redeploy, ' +
+            'or remove TURNSTILE_SECRET_KEY until both are configured.'
+        )
+      }
     }
   }

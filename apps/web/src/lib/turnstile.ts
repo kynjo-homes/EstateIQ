@@ -27,6 +27,14 @@ export async function verifyTurnstileToken(
   return data.success === true
 }
 
+/**
+ * Enforce verification only when both server secret and public site key exist.
+ * If Netlify has TURNSTILE_SECRET_KEY but the build lacks NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+ * the widget never renders while authorize() rejects every login — works on localhost
+ * where both are often unset together.
+ */
 export function isTurnstileEnforced(): boolean {
-  return Boolean(process.env.TURNSTILE_SECRET_KEY?.trim())
+  const secret = process.env.TURNSTILE_SECRET_KEY?.trim()
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim()
+  return Boolean(secret && siteKey)
 }
