@@ -3,6 +3,7 @@ import {
   authenticateCredentials,
   setWebSessionCookie,
 } from '@/lib/credentials-login'
+import { getClientIpFromRequest } from '@/lib/get-client-ip'
 
 export async function POST(req: Request) {
   try {
@@ -18,7 +19,8 @@ export async function POST(req: Request) {
     const result = await authenticateCredentials(
       email,
       password,
-      turnstileToken || undefined
+      turnstileToken || undefined,
+      { remoteip: getClientIpFromRequest(req) }
     )
 
     if ('error' in result) {

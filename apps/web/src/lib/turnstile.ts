@@ -2,12 +2,20 @@
  * Server-side Turnstile verification.
  * @see https://developers.cloudflare.com/turnstile/get-started/server-side-validation/
  */
+export type TurnstileVerifyResult = {
+  ok: boolean
+  /** Cloudflare `error-codes` when ok is false */
+  errorCodes?: string[]
+}
+
 export async function verifyTurnstileToken(
   token: string,
   remoteip?: string
-): Promise<boolean> {
+): Promise<TurnstileVerifyResult> {
   const secret = process.env.TURNSTILE_SECRET_KEY
-  if (!secret || !token?.trim()) return false
+  if (!secret || !token?.trim()) {
+    return { ok: false, errorCodes: ['missing-secret-or-token'] }
+  }
 
   const body = new URLSearchParams({ secret, response: token.trim() })
   if (remoteip) body.set('remoteip', remoteip)
@@ -21,17 +29,27 @@ export async function verifyTurnstileToken(
     }
   )
 
-  if (!res.ok) return false
+  if (!res.ok) {
+    return { ok: false, errorCodes: [`http-${res.status}`] }
+  }
 
-  const data = (await res.json()) as { success?: boolean }
-  return data.success === true
+  const data = (await res.json()) as {
+    success?: boolean
+    'error-codes'?: string[]
+  }
+
+  if (data.success === true) {
+    return { ok: true }
+  }
+
+  return {
+    ok: false,
+    errorCodes: data['error-codes']?.length ? data['error-codes'] : ['unknown'],
+  }
 }
 
 /**
  * Enforce verification only when both server secret and public site key exist.
- * If Netlify has TURNSTILE_SECRET_KEY but the build lacks NEXT_PUBLIC_TURNSTILE_SITE_KEY,
- * the widget never renders while authorize() rejects every login — works on localhost
- * where both are often unset together.
  */
 export function isTurnstileEnforced(): boolean {
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim()

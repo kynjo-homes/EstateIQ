@@ -12,7 +12,18 @@ export type LoginOk = {
   user: { id: string; email: string; name: string | null }
 }
 
-export type LoginFail = { error: string }
+export type LoginFail = {
+  error: string
+  /** Set when login-debug asks for Turnstile diagnostics */
+  turnstileErrorCodes?: string[]
+}
+
+export type AuthenticateOptions = {
+  /** Forwarded client IP — often required for Turnstile behind Netlify/CDN */
+  remoteip?: string
+  /** Include Cloudflare `error-codes` on Turnstile failure (login-debug only) */
+  debugTurnstile?: boolean
+}
 
 /**
  * Email/password + optional Turnstile. Used by server actions and POST /api/auth/login.
@@ -20,7 +31,8 @@ export type LoginFail = { error: string }
 export async function authenticateCredentials(
   emailRaw: string,
   password: string,
-  turnstileToken?: string
+  turnstileToken?: string,
+  options?: AuthenticateOptions
 ): Promise<LoginOk | LoginFail> {
   const email = emailRaw.trim()
   if (!email || !password) {
@@ -31,8 +43,23 @@ export async function authenticateCredentials(
     if (isTurnstileEnforced()) {
       const t = turnstileToken?.trim()
       if (!t) return { error: 'Please complete the security check.' }
-      const ok = await verifyTurnstileToken(t)
-      if (!ok) return { error: 'Security check failed. Please try again.' }
+      const vr = await verifyTurnstileToken(t, options?.remoteip)
+      if (!vr.ok) {
+        if (vr.errorCodes?.length) {
+          logger.warn('[Turnstile] verify failed', {
+            errorCodes: vr.errorCodes,
+            remoteip: options?.remoteip ?? null,
+          })
+        }
+        const base = 'Security check failed. Please try again.'
+        if (options?.debugTurnstile && vr.errorCodes?.length) {
+          return {
+            error: base,
+            turnstileErrorCodes: vr.errorCodes,
+          }
+        }
+        return { error: base }
+      }
     }
 
     const { prisma } = await import('@estateiq/database')

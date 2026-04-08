@@ -1,9 +1,11 @@
 'use server'
 
+import { headers } from 'next/headers'
 import {
   authenticateCredentials,
   setWebSessionCookie,
 } from '@/lib/credentials-login'
+import { getClientIpFromHeaders } from '@/lib/get-client-ip'
 import { logger } from '@/lib/logger'
 
 export type LoginState = { error: string } | { success: true } | null
@@ -26,10 +28,12 @@ export async function loginAction(
   }
 
   try {
+    const h = await headers()
     const result = await authenticateCredentials(
       email,
       password,
-      turnstileToken || undefined
+      turnstileToken || undefined,
+      { remoteip: getClientIpFromHeaders(h) }
     )
 
     if ('error' in result) {

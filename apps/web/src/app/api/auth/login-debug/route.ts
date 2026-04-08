@@ -5,6 +5,7 @@ import {
   clearWebSessionCookie,
   setWebSessionCookie,
 } from '@/lib/credentials-login'
+import { getClientIpFromRequest } from '@/lib/get-client-ip'
 import { isLoginTestAllowed } from '@/lib/login-test-allowed'
 
 type Step = { step: string; ok: boolean; detail?: string }
@@ -45,14 +46,26 @@ export async function POST(req: Request) {
     const password = body.password ?? ''
     const turnstileToken = body.turnstileToken?.trim()
 
+    const remoteip = getClientIpFromRequest(req)
+    push(
+      'Client IP (x-forwarded-for / x-real-ip)',
+      true,
+      remoteip ?? 'none — Turnstile may still work; if not, check Cloudflare hostname + keys'
+    )
+
     const auth = await authenticateCredentials(
       email,
       password,
-      turnstileToken || undefined
+      turnstileToken || undefined,
+      { remoteip, debugTurnstile: true }
     )
 
     if ('error' in auth) {
-      push('authenticateCredentials (DB + bcrypt + Turnstile)', false, auth.error)
+      const detail =
+        auth.turnstileErrorCodes?.length
+          ? `${auth.error} Cloudflare: ${auth.turnstileErrorCodes.join(', ')}`
+          : auth.error
+      push('authenticateCredentials (DB + bcrypt + Turnstile)', false, detail)
       return NextResponse.json({ ok: false, steps })
     }
 
