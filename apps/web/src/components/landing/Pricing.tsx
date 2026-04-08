@@ -130,7 +130,7 @@ const Pricing = () => {
         </div>
 
         <p className="mt-12 text-center text-sm text-muted-foreground max-w-2xl mx-auto">
-          All plans include a 7-day trial of Professional features after sign-up.
+          You can start using the platform immediately after sign-up.
           Questions?{" "}
           <a
             href="mailto:contact@kynjo.homes"

@@ -23,7 +23,7 @@ export const pricingPlans: PricingPlan[] = [
     featured: false,
     cta: 'Get started free',
     features: [
-      { label: 'Up to 20 residents', included: true },
+      { label: 'Up to 20 members', included: true },
       { label: 'Up to 10 units', included: true },
       { label: 'Announcements', included: true },
       { label: 'Visitor management', included: true },
@@ -45,7 +45,7 @@ export const pricingPlans: PricingPlan[] = [
     featured: true,
     cta: 'Get started',
     features: [
-      { label: 'Unlimited residents', included: true },
+      { label: 'Unlimited members', included: true },
       { label: 'Unlimited units', included: true },
       { label: 'All Starter features', included: true },
       { label: 'Levies & payments', included: true },
