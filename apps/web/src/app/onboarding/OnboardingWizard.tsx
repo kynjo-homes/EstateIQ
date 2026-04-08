@@ -12,9 +12,9 @@ import {
 } from '@/lib/nigeriaPhone'
 
 const STEPS = [
-  { id: 1, label: 'Your estate',  icon: Building2 },
-  { id: 2, label: 'Your profile', icon: User },
-  { id: 3, label: 'First unit',   icon: Home },
+  { id: 1, label: 'Your estate',      icon: Building2 },
+  { id: 2, label: 'Your profile',     icon: User },
+  { id: 3, label: 'Unit (optional)', icon: Home },
 ]
 
 function splitDisplayName(name: string) {
@@ -175,7 +175,7 @@ export default function OnboardingWizard({ userName = '' }: Props) {
       if (form.phone && !isValidNigeriaMobileLocal(form.phone)) return false
       return true
     }
-    if (step === 3) return form.unitNumber
+    if (step === 3) return true
     return false
   }
 
@@ -352,9 +352,9 @@ export default function OnboardingWizard({ userName = '' }: Props) {
           {step === 3 && (
             <div className="space-y-5">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-1">Add your first unit</h2>
+                <h2 className="text-lg font-semibold text-gray-900 mb-1">First unit (optional)</h2>
                 <p className="text-sm text-gray-500">
-                  A unit is a house, flat, or plot. You can add more from the dashboard.
+                  A unit is a house, flat, or plot. Skip this if you are not assigning one yet, or add more from the dashboard later.
                 </p>
               </div>
 
@@ -371,7 +371,7 @@ export default function OnboardingWizard({ userName = '' }: Props) {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Unit number <span className="text-red-500">*</span>
+                    Unit number <span className="text-gray-400 font-normal">(optional)</span>
                   </label>
                   <input
                     type="text" value={form.unitNumber} onChange={set('unitNumber')}
@@ -382,7 +382,7 @@ export default function OnboardingWizard({ userName = '' }: Props) {
               </div>
 
               <div className="bg-gray-50 rounded p-3 text-xs text-gray-500">
-                This unit will be assigned to you as the admin. You can add all remaining units after setup.
+                If you add a unit here, it will be assigned to you as the admin. Otherwise, add units from the dashboard when you are ready.
               </div>
             </div>
           )}

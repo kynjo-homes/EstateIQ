@@ -53,22 +53,30 @@ export async function POST(req: Request) {
         data: { name: estateName, slug, address, plan: plan ?? 'STARTER', subscriptionStatus: plan === 'PROFESSIONAL' ? 'PENDING_PAYMENT' : 'ACTIVE', },
       })
 
-      // 2. Create the first unit
-      const unit = await tx.unit.create({
-        data: { estateId: estate.id, number: unitNumber, block: unitBlock || null },
-      })
+      // 2. Optionally create the first unit (requires a unit number)
+      const unitNumberTrim = typeof unitNumber === 'string' ? unitNumber.trim() : ''
+      const unit =
+        unitNumberTrim.length > 0
+          ? await tx.unit.create({
+              data: {
+                estateId: estate.id,
+                number:   unitNumberTrim,
+                block:    (typeof unitBlock === 'string' && unitBlock.trim()) || null,
+              },
+            })
+          : null
 
       // 3. Create the admin resident profile
       const resident = await tx.resident.create({
         data: {
           estateId: estate.id,
           userId,
-          unitId: unit.id,
-          role: 'ADMIN',
+          unitId:   unit?.id ?? null,
+          role:     'ADMIN',
           firstName,
           lastName,
           email,
-          phone: phoneNormalized || null,
+          phone:    phoneNormalized || null,
         },
       })
 
