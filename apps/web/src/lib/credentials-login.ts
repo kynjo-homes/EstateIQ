@@ -5,6 +5,7 @@ import {
   sessionCookieOptions,
   signWebSessionToken,
 } from './auth-cookie'
+import { logger } from './logger'
 import { isTurnstileEnforced, verifyTurnstileToken } from './turnstile'
 
 export type LoginOk = {
@@ -26,33 +27,38 @@ export async function authenticateCredentials(
     return { error: 'Email and password are required.' }
   }
 
-  if (isTurnstileEnforced()) {
-    const t = turnstileToken?.trim()
-    if (!t) return { error: 'Please complete the security check.' }
-    const ok = await verifyTurnstileToken(t)
-    if (!ok) return { error: 'Security check failed. Please try again.' }
-  }
+  try {
+    if (isTurnstileEnforced()) {
+      const t = turnstileToken?.trim()
+      if (!t) return { error: 'Please complete the security check.' }
+      const ok = await verifyTurnstileToken(t)
+      if (!ok) return { error: 'Security check failed. Please try again.' }
+    }
 
-  const { prisma } = await import('@estateiq/database')
-  const user = await prisma.authUser.findUnique({
-    where: { email },
-  })
+    const { prisma } = await import('@estateiq/database')
+    const user = await prisma.authUser.findUnique({
+      where: { email },
+    })
 
-  if (!user?.passwordHash) {
-    return { error: 'Invalid email or password' }
-  }
+    if (!user?.passwordHash) {
+      return { error: 'Invalid email or password' }
+    }
 
-  const valid = await bcrypt.compare(password, user.passwordHash)
-  if (!valid) {
-    return { error: 'Invalid email or password' }
-  }
+    const valid = await bcrypt.compare(password, user.passwordHash)
+    if (!valid) {
+      return { error: 'Invalid email or password' }
+    }
 
-  return {
-    user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    },
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+    }
+  } catch (err) {
+    logger.error('[authenticateCredentials]', err)
+    return { error: 'Unable to sign in. Please try again.' }
   }
 }
 

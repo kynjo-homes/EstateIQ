@@ -30,12 +30,18 @@ export default function SignInPage() {
   const needTurnstile = isTurnstileWidgetEnabled()
 
   useEffect(() => {
-    if (state?.error) {
+    if (state && 'success' in state && state.success) {
+      window.location.assign('/dashboard')
+    }
+  }, [state])
+
+  useEffect(() => {
+    if (state && 'error' in state && state.error) {
       setFormKey(k => k + 1)
       turnstileRef.current?.reset()
       setTurnstileToken(null)
     }
-  }, [state?.error])
+  }, [state])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -52,7 +58,7 @@ export default function SignInPage() {
         <h1 className="text-2xl font-semibold text-gray-900 mb-2">Login</h1>
         <p className="text-gray-500 text-sm mb-6">Sign in to your Kynjo.Homes account</p>
 
-        {state?.error && (
+        {state && 'error' in state && state.error && (
           <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded mb-4">
             {state.error}
           </div>

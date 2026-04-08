@@ -1,16 +1,17 @@
 'use server'
 
-import { redirect, unstable_rethrow } from 'next/navigation'
 import {
   authenticateCredentials,
   setWebSessionCookie,
 } from '@/lib/credentials-login'
 import { logger } from '@/lib/logger'
 
-export type LoginState = { error: string } | null
+export type LoginState = { error: string } | { success: true } | null
 
 /**
- * Email/password login: JWT in httpOnly cookie (no NextAuth).
+ * Email/password login: JWT in httpOnly cookie.
+ * Returns `{ success: true }` so the client can navigate — do not use `redirect()` here;
+ * Next.js 16 can mis-classify the redirect error and surface a generic failure in production.
  */
 export async function loginAction(
   _prev: LoginState,
@@ -36,9 +37,8 @@ export async function loginAction(
     }
 
     await setWebSessionCookie(result.user)
-    redirect('/dashboard')
+    return { success: true }
   } catch (error) {
-    unstable_rethrow(error)
     logger.error('[loginAction]', error)
     return { error: 'Unable to sign in. Please try again.' }
   }
