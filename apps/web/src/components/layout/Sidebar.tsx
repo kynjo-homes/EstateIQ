@@ -10,7 +10,6 @@ import {
   AlertTriangle, LogOut, ChevronLeft, ChevronRight,
   Car, ScanLine,
 } from 'lucide-react'
-import { signOut } from 'next-auth/react'
 import { useState } from 'react'
 import { useResident } from '@/context/ResidentContext'
 import { useMobileNav } from '@/context/MobileNavContext'
@@ -197,11 +196,8 @@ export default function Sidebar() {
         <button
           onClick={() => {
             closeMobileNav()
-            void signOut({ redirect: false })
-              .then(() => {
-                window.location.assign('/sign-in')
-              })
-              .catch(() => {
+            void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .finally(() => {
                 window.location.assign('/sign-in')
               })
           }}

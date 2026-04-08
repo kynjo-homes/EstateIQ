@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from '@/components/layout/SessionProvider'
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef, useState } from "react";
 

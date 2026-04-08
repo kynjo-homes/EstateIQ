@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { signOut } from 'next-auth/react'
 import { LogOut, Settings, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -89,11 +88,8 @@ export default function UserMenu({ initials }: Props) {
             className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
             onClick={() => {
               setOpen(false)
-              void signOut({ redirect: false })
-                .then(() => {
-                  window.location.assign('/sign-in')
-                })
-                .catch(() => {
+              void fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+                .finally(() => {
                   window.location.assign('/sign-in')
                 })
             }}

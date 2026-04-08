@@ -1,4 +1,4 @@
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import { prisma } from '@estateiq/database'
 import DashboardShell from '@/components/layout/DashboardShell'

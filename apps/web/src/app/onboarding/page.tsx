@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/session'
 import OnboardingWizard from './OnboardingWizard'
 
 export default async function OnboardingPage() {

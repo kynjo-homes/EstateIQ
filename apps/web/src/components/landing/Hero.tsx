@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Building2, Users, ShieldCheck } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from '@/components/layout/SessionProvider'
 import { Button } from "@/components/ui/button";
 import heroImage from "@/components/images/hero-estate.jpg";
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Loader2, Eye, EyeOff, Check } from 'lucide-react'
@@ -62,18 +61,22 @@ export default function SignUpForm() {
 
     const onboardingUrl = `/onboarding?plan=${encodeURIComponent(plan)}`
 
-    const signInRes = await signIn('credentials', {
-      email: form.email,
-      password: form.password,
-      callbackUrl: onboardingUrl,
-      redirect: false,
-      ...(needTurnstile && turnstileToken ? { turnstileToken } : {}),
+    const loginRes = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: form.email,
+        password: form.password,
+        ...(needTurnstile && turnstileToken ? { turnstileToken } : {}),
+      }),
     })
 
     setLoading(false)
 
-    if (signInRes?.error) {
-      setError('Account created but sign-in failed. Please sign in manually.')
+    if (!loginRes.ok) {
+      const errBody = (await loginRes.json().catch(() => ({}))) as { error?: string }
+      setError(errBody.error ?? 'Account created but sign-in failed. Please sign in manually.')
       turnstileRef.current?.reset()
       setTurnstileToken(null)
       return

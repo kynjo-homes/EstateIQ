@@ -1,6 +1,6 @@
 'use client'
 import { Bell, Search } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/components/layout/SessionProvider'
 import { useResident } from '@/context/ResidentContext'
 import MobileMenuButton from '@/components/layout/MobileMenuButton'
 import UserMenu from '@/components/layout/UserMenu'

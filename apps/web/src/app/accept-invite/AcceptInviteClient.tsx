@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { CheckCircle2, Loader2, Eye, EyeOff } from 'lucide-react'
-import { signIn } from 'next-auth/react'
 import { fetchJson } from '@/lib/fetchJson'
 import Link from 'next/link'
 import logo from '@/components/images/logo.png'
@@ -109,16 +108,20 @@ function AcceptInviteForm() {
       return
     }
 
-    const signInRes = await signIn('credentials', {
-      email: info.email,
-      password,
-      redirect: false,
-      ...(needTurnstile && turnstileToken ? { turnstileToken } : {}),
+    const loginRes = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        email: info.email,
+        password,
+        ...(needTurnstile && turnstileToken ? { turnstileToken } : {}),
+      }),
     })
 
     setLoading(false)
 
-    if (signInRes?.error) {
+    if (!loginRes.ok) {
       setNeedsSignIn(true)
       turnstileRef.current?.reset()
       setTurnstileToken(null)

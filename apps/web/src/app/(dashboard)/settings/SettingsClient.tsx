@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/components/layout/SessionProvider'
 import { useResident } from '@/context/ResidentContext'
 import { ChevronRight } from 'lucide-react'
 import ChangePasswordForm from './ChangePasswordForm'

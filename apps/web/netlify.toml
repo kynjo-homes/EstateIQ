@@ -11,7 +11,7 @@
   NODE_OPTIONS    = "--max-old-space-size=4096"
   NPM_FLAGS       = "--legacy-peer-deps"
   TURBO_TELEMETRY_DISABLED = "1"
-  # next-auth/react inlines NEXTAUTH_URL in client chunks (public site URL). TERMII_SENDER_ID often matches visible SMS sender text.
+  # NEXTAUTH_URL still used for env validation / links (canonical site URL). TERMII_SENDER_ID often matches visible SMS sender text.
   # NEXT_PUBLIC_* keys are intentionally embedded in JS (public Turnstile site key, same pattern as Paystack publishable key).
   SECRETS_SCAN_OMIT_KEYS = "NEXTAUTH_URL,AUTH_URL,TERMII_SENDER_ID,NEXT_PUBLIC_TURNSTILE_SITE_KEY,NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY, NEXT_PUBLIC_CONTACT_COMPANY, NEXT_PUBLIC_CONTACT_ADDRESS, NEXT_PUBLIC_CONTACT_PHONE, NEXT_PUBLIC_WHATSAPP_NUMBER, NEXT_PUBLIC_CONTACT_EMAIL, MAILER_SMTP_USER, NEXT_PUBLIC_FACEBOOK_SITE, NEXT_PUBLIC_TWITTER_SITE, NEXT_PUBLIC_INSTAGRAM_SITE, NEXT_PUBLIC_LINKEDIN_SITE, CLOUDINARY_CLOUD_NAME"
   # Set in Netlify UI (Site → Environment variables), not in this file: DATABASE_URL, AUTH_SECRET,

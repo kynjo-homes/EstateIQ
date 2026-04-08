@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
+import { useSession } from '@/components/layout/SessionProvider'
 import { useResident } from '@/context/ResidentContext'
 
 const ROLE_LABEL: Record<string, string> = {

@@ -1,6 +1,6 @@
 import Topbar from '@/components/layout/Topbar'
 import SettingsClient from './SettingsClient'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/session'
 import { prisma } from '@estateiq/database'
 
 export default async function SettingsPage() {

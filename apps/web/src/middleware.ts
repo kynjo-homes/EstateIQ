@@ -1,12 +1,7 @@
-import NextAuth from 'next-auth'
-import authConfig from '@/lib/auth.config'
+import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
-
-/** Edge-safe: no Prisma — JWT sessions still validate for credential sign-ins. */
-const { auth } = NextAuth(authConfig)
-
-const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET!)
+import { getAuthSecretKey, WEB_SESSION_COOKIE } from '@/lib/auth-cookie'
 
 const publicPaths = [
   '/',
@@ -45,7 +40,7 @@ const dashboardRoutes = [
   '/onboarding',
 ]
 
-export default auth(async req => {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   if (publicPaths.some(p => pathname.startsWith(p))) {
@@ -74,14 +69,25 @@ export default auth(async req => {
   const mobileToken = req.headers.get('x-mobile-session')
   if (mobileToken) {
     try {
-      await jwtVerify(mobileToken, SECRET)
+      await jwtVerify(mobileToken, getAuthSecretKey())
       return NextResponse.next()
     } catch {
       return NextResponse.json({ error: 'Invalid mobile session' }, { status: 401 })
     }
   }
 
-  if (!req.auth) {
+  const webToken = req.cookies.get(WEB_SESSION_COOKIE)?.value
+  let webOk = false
+  if (webToken) {
+    try {
+      await jwtVerify(webToken, getAuthSecretKey())
+      webOk = true
+    } catch {
+      webOk = false
+    }
+  }
+
+  if (!webOk) {
     if (pathname.startsWith('/api')) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
@@ -91,7 +97,7 @@ export default auth(async req => {
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],

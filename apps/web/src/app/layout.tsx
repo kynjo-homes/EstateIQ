@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { validateEnv } from '@/lib/env'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/session'
 import SessionProvider from '@/components/layout/SessionProvider'
 import CookieConsent from '@/components/CookieConsent'
 import SiteJsonLd from '@/components/seo/SiteJsonLd'

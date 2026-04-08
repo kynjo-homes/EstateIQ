@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from '@/components/layout/SessionProvider'
 import logo from "@/components/images/logo.png";
 import { Button } from "@/components/ui/button";
 

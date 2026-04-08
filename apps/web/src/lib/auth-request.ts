@@ -1,13 +1,12 @@
 import { headers } from 'next/headers'
-import { auth } from '@/lib/auth'
+import { auth } from '@/lib/session'
+import { getAuthSecretKey } from '@/lib/auth-cookie'
 import { jwtVerify } from 'jose'
-
-const SECRET = new TextEncoder().encode(process.env.AUTH_SECRET!)
 
 async function userIdFromMobileJwt(token: string | null): Promise<string | null> {
   if (!token) return null
   try {
-    const { payload } = await jwtVerify(token, SECRET)
+    const { payload } = await jwtVerify(token, getAuthSecretKey())
     return typeof payload.sub === 'string' ? payload.sub : null
   } catch {
     return null
@@ -15,7 +14,7 @@ async function userIdFromMobileJwt(token: string | null): Promise<string | null>
 }
 
 /**
- * Resolve AuthUser id for Route Handlers: NextAuth cookie session or `x-mobile-session` JWT.
+ * Resolve AuthUser id for Route Handlers: web session cookie or `x-mobile-session` JWT.
  * Uses `headers()` so handlers do not need a `Request` argument.
  */
 export async function getAuthUserId(): Promise<string | null> {
