@@ -6,6 +6,7 @@ import crypto from 'crypto'
 import { getPaginationParams, paginate } from '@/lib/paginate'
 import { logger } from '@/lib/logger'
 import { getPublicAppOrigin } from '@/lib/appUrl'
+import { assertCanAddResident } from '@/lib/estatePlanEnforcement'
 
 
 export async function GET(req: Request) {
@@ -83,6 +84,11 @@ export async function POST(req: Request) {
         { error: 'A resident with this email already exists' },
         { status: 409 }
       )
+    }
+
+    const cap = await assertCanAddResident(prisma, admin.estateId)
+    if (!cap.ok) {
+      return NextResponse.json({ error: cap.message }, { status: 403 })
     }
 
     let authUser = await prisma.authUser.findUnique({

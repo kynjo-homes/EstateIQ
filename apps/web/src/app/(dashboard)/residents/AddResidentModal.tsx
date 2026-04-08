@@ -1,21 +1,32 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { X, Loader2, Plus } from 'lucide-react'
 import { fetchJson } from '@/lib/fetchJson'
+import { useSubscription } from '@/context/SubscriptionContext'
 
 interface Unit { id: string; number: string; block: string | null }
 interface Props { onClose: () => void; onSuccess: () => void }
 
 export default function AddResidentModal({ onClose, onSuccess }: Props) {
+  const { limits } = useSubscription()
   const [units, setUnits]             = useState<Unit[]>([])
   const [unitsLoading, setUnitsLoading] = useState(true)
   const [unitsError, setUnitsError]   = useState('')
+  const [residentTotal, setResidentTotal] = useState<number | null>(null)
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState('')
   const [showAddUnit, setShowAddUnit] = useState(false)
   const [newUnit, setNewUnit]         = useState({ number: '', block: '' })
   const [addingUnit, setAddingUnit]   = useState(false)
   const [addUnitError, setAddUnitError] = useState('')
+
+  const atUnitCap =
+    limits.maxUnits !== -1 && units.length >= limits.maxUnits
+  const atResidentCap =
+    limits.maxResidents !== -1 &&
+    residentTotal !== null &&
+    residentTotal >= limits.maxResidents
 
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '',
@@ -35,7 +46,23 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
     setUnitsLoading(false)
   }
 
-  useEffect(() => { loadUnits() }, [])
+  async function loadResidentTotal() {
+    const { data, error } = await fetchJson<{ data: unknown[]; total: number }>(
+      '/api/residents?page=1&limit=1'
+    )
+    if (!error && data && typeof data.total === 'number') {
+      setResidentTotal(data.total)
+    }
+  }
+
+  useEffect(() => {
+    loadUnits()
+    loadResidentTotal()
+  }, [])
+
+  useEffect(() => {
+    if (atUnitCap) setShowAddUnit(false)
+  }, [atUnitCap])
 
   function set(key: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -91,6 +118,15 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {atResidentCap && (
+            <div className="bg-amber-50 text-amber-900 text-sm px-4 py-3 rounded border border-amber-100">
+              You&apos;ve reached your plan limit of {limits.maxResidents} residents.{' '}
+              <Link href="/subscribe" className="font-semibold text-brand-700 underline underline-offset-2">
+                Upgrade to Professional
+              </Link>{' '}
+              to add more.
+            </div>
+          )}
           {error && (
             <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded">{error}</div>
           )}
@@ -135,12 +171,26 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
               <label className="text-sm font-medium text-gray-700">Assign unit</label>
               <button
                 type="button"
-                onClick={() => { setShowAddUnit(v => !v); setAddUnitError('') }}
-                className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
+                disabled={atUnitCap}
+                title={atUnitCap ? `Plan limit: ${limits.maxUnits} units` : undefined}
+                onClick={() => {
+                  if (atUnitCap) return
+                  setShowAddUnit(v => !v)
+                  setAddUnitError('')
+                }}
+                className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Plus size={12} /> New unit
               </button>
             </div>
+            {atUnitCap && (
+              <p className="text-xs text-amber-700 mb-2">
+                Unit limit reached ({limits.maxUnits}).{' '}
+                <Link href="/subscribe" className="font-semibold underline underline-offset-2">
+                  Upgrade
+                </Link>
+              </p>
+            )}
 
             {showAddUnit && (
               <div className="mb-2 p-3 bg-brand-50 rounded space-y-2">
@@ -237,7 +287,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
               Cancel
             </button>
             <button
-              type="submit" disabled={loading}
+              type="submit" disabled={loading || atResidentCap}
               className="flex-1 bg-brand-600 text-white rounded py-2.5 text-sm font-medium hover:bg-brand-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {loading ? <><Loader2 size={14} className="animate-spin" /> Adding...</> : 'Add member'}

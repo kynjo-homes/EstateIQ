@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { fetchJson } from '@/lib/fetchJson'
-import { PlanId, PlanLimits, getPlanLimits, canAccessFeature } from '@/lib/plans'
+import { PlanId, PlanLimits, getEffectivePlanLimits, canAccessFeature } from '@/lib/plans'
 
 interface SubscriptionInfo {
   plan:                  PlanId
@@ -25,7 +25,7 @@ const SubscriptionContext = createContext<SubscriptionContextType>({
   plan:      'STARTER',
   status:    'ACTIVE',
   expiresAt: null,
-  limits:    getPlanLimits('STARTER'),
+  limits:    getEffectivePlanLimits('STARTER', 'ACTIVE', null),
   isActive:  true,
   daysLeft:  null,
   can:       () => false,
@@ -45,7 +45,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const plan      = (info?.plan ?? 'STARTER') as PlanId
   const status    = info?.subscriptionStatus ?? 'ACTIVE'
   const expiresAt = info?.subscriptionExpiresAt ? new Date(info.subscriptionExpiresAt) : null
-  const limits    = getPlanLimits(plan)
+  const limits    = getEffectivePlanLimits(plan, status, expiresAt)
 
   const isActive = status === 'ACTIVE' && (
     plan === 'STARTER' ? true :

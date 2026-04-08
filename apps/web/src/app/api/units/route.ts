@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
+import { assertCanAddUnit } from '@/lib/estatePlanEnforcement'
 
 export async function GET() {
   try {
@@ -54,6 +55,11 @@ export async function POST(req: Request) {
 
     if (!number?.trim()) {
       return NextResponse.json({ error: 'Unit number is required' }, { status: 400 })
+    }
+
+    const cap = await assertCanAddUnit(prisma, resident.estateId)
+    if (!cap.ok) {
+      return NextResponse.json({ error: cap.message }, { status: 403 })
     }
 
     const unit = await prisma.unit.create({
