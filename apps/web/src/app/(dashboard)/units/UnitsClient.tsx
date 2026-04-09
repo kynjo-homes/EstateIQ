@@ -6,6 +6,8 @@ import { fetchJson } from '@/lib/fetchJson'
 import { useResident } from '@/context/ResidentContext'
 import { useSubscription } from '@/context/SubscriptionContext'
 import { cn } from '@/lib/utils'
+import { resolveUnitTypeForSubmit } from '@/lib/unitTypes'
+import UnitTypeFields from '@/components/units/UnitTypeFields'
 
 interface Unit {
   id: string
@@ -22,7 +24,12 @@ export default function UnitsClient() {
   const [showAdd, setShowAdd] = useState(false)
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState('')
-  const [form, setForm] = useState({ number: '', block: '', type: '' })
+  const [form, setForm] = useState({
+    number: '',
+    block: '',
+    typeSelect: '',
+    typeOther: '',
+  })
 
   const atUnitCap =
     limits.maxUnits !== -1 && units.length >= limits.maxUnits
@@ -49,7 +56,7 @@ export default function UnitsClient() {
       body: JSON.stringify({
         number: form.number.trim(),
         block: form.block.trim() || null,
-        type: form.type.trim() || null,
+        type: resolveUnitTypeForSubmit(form.typeSelect, form.typeOther),
       }),
     })
     if (error) {
@@ -60,7 +67,7 @@ export default function UnitsClient() {
         if (ba !== 0) return ba
         return a.number.localeCompare(b.number, undefined, { numeric: true })
       }))
-      setForm({ number: '', block: '', type: '' })
+      setForm({ number: '', block: '', typeSelect: '', typeOther: '' })
       setShowAdd(false)
     }
     setAdding(false)
@@ -178,17 +185,13 @@ export default function UnitsClient() {
                   placeholder="Optional"
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
-                  Type
-                </label>
-                <input
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-gray-900 outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
-                  value={form.type}
-                  onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-                  placeholder="e.g. 3 bedroom duplex"
-                />
-              </div>
+              <UnitTypeFields
+                typeSelect={form.typeSelect}
+                typeOther={form.typeOther}
+                onTypeSelectChange={v => setForm(p => ({ ...p, typeSelect: v }))}
+                onTypeOtherChange={v => setForm(p => ({ ...p, typeOther: v }))}
+                idPrefix="units-modal"
+              />
               {addError && (
                 <p className="text-sm text-red-600">{addError}</p>
               )}

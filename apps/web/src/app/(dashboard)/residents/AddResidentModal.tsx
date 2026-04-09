@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { X, Loader2, Plus } from 'lucide-react'
 import { fetchJson } from '@/lib/fetchJson'
 import { useSubscription } from '@/context/SubscriptionContext'
+import { resolveUnitTypeForSubmit } from '@/lib/unitTypes'
+import UnitTypeFields from '@/components/units/UnitTypeFields'
 
 interface Unit { id: string; number: string; block: string | null }
 interface Props { onClose: () => void; onSuccess: () => void }
@@ -17,7 +19,12 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
   const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState('')
   const [showAddUnit, setShowAddUnit] = useState(false)
-  const [newUnit, setNewUnit]         = useState({ number: '', block: '' })
+  const [newUnit, setNewUnit]         = useState({
+    number: '',
+    block: '',
+    typeSelect: '',
+    typeOther: '',
+  })
   const [addingUnit, setAddingUnit]   = useState(false)
   const [addUnitError, setAddUnitError] = useState('')
 
@@ -77,7 +84,11 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
     const { data, error } = await fetchJson<Unit>('/api/units', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newUnit),
+      body: JSON.stringify({
+        number: newUnit.number.trim(),
+        block: newUnit.block.trim() || null,
+        type: resolveUnitTypeForSubmit(newUnit.typeSelect, newUnit.typeOther),
+      }),
     })
 
     if (error) {
@@ -85,7 +96,7 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
     } else if (data) {
       await loadUnits()
       setForm(p => ({ ...p, unitId: data.id }))
-      setNewUnit({ number: '', block: '' })
+      setNewUnit({ number: '', block: '', typeSelect: '', typeOther: '' })
       setShowAddUnit(false)
     }
     setAddingUnit(false)
@@ -214,6 +225,14 @@ export default function AddResidentModal({ onClose, onSuccess }: Props) {
                     className="w-full border border-brand-200 bg-white rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                   />
                 </div>
+                <UnitTypeFields
+                  compact
+                  idPrefix="add-resident-new-unit"
+                  typeSelect={newUnit.typeSelect}
+                  typeOther={newUnit.typeOther}
+                  onTypeSelectChange={v => setNewUnit(p => ({ ...p, typeSelect: v }))}
+                  onTypeOtherChange={v => setNewUnit(p => ({ ...p, typeOther: v }))}
+                />
                 <div className="flex gap-2">
                   <button
                     type="button"
