@@ -30,6 +30,7 @@ const publicPaths = [
 const dashboardRoutes = [
   '/dashboard',
   '/residents',
+  '/units',
   '/announcements',
   '/levies',
   '/visitors',

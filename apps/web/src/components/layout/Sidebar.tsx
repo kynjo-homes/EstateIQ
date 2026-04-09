@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Megaphone, CreditCard,
   ShieldCheck, Wrench, CalendarCheck, BarChart2,
   AlertTriangle, LogOut, ChevronLeft, ChevronRight,
-  Car, ScanLine,
+  Car, ScanLine, Boxes,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useResident } from '@/context/ResidentContext'
@@ -36,6 +36,12 @@ const navItems: NavItem[] = [
     href:  '/residents',
     icon:  Users,
     roles: ['ADMIN', 'SUPER_ADMIN'],
+  },
+  {
+    label: 'Units',
+    href:  '/units',
+    icon:  Boxes,
+    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
   },
   {
     label: 'Announcements',
