@@ -53,7 +53,6 @@ const ROLES: { value: string; label: string }[] = [
   { value: 'RESIDENT', label: 'Resident' },
   { value: 'SECURITY', label: 'Security' },
   { value: 'ADMIN', label: 'Admin' },
-  { value: 'SUPER_ADMIN', label: 'Super admin' },
 ]
 
 function unitLabel(u: Unit | null) {
@@ -65,6 +64,8 @@ export default function ResidentsScreen() {
   const { resident: me } = useAuth()
   const queryClient = useQueryClient()
   const isAdmin = me?.role === 'ADMIN' || me?.role === 'SUPER_ADMIN'
+  const canManageMembers = isAdmin
+  const canViewMembers = isAdmin || me?.role === 'SECURITY'
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<ResidentRow | null>(null)
@@ -85,7 +86,7 @@ export default function ResidentsScreen() {
       if (!data) throw new Error('Could not load residents.')
       return data
     },
-    enabled: isAdmin,
+    enabled: canViewMembers,
   })
 
   const { data: units = [] } = useQuery({
@@ -95,7 +96,7 @@ export default function ResidentsScreen() {
       if (err) throw new Error(err)
       return data ?? []
     },
-    enabled: isAdmin,
+    enabled: canManageMembers,
   })
 
   const saveMutation = useMutation({
@@ -137,7 +138,7 @@ export default function ResidentsScreen() {
     onError: (e: Error) => Alert.alert('Error', e.message),
   })
 
-  const deactivateMutation = useMutation({
+  const deleteMemberMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await apiFetch(`/api/residents/${id}`, { method: 'DELETE' })
       if (error) throw new Error(error)
@@ -189,12 +190,14 @@ export default function ResidentsScreen() {
     setEditing(null)
   }
 
-  if (!isAdmin) {
+  if (!canViewMembers) {
     return (
       <View style={styles.root}>
-        <DashboardTopBar title="Residents" />
+        <DashboardTopBar title="Members" />
         <View style={styles.denied}>
-          <Text style={styles.deniedText}>Only estate admins can manage residents.</Text>
+          <Text style={styles.deniedText}>
+            Only estate administrators and security staff can open the member directory.
+          </Text>
         </View>
       </View>
     )
@@ -205,15 +208,17 @@ export default function ResidentsScreen() {
 
   return (
     <View style={styles.root}>
-      <DashboardTopBar title="Residents" />
+      <DashboardTopBar title="Members" />
       <View style={styles.toolbar}>
         <Text style={styles.count}>
-          {page?.total ?? '—'} {page?.total === 1 ? 'resident' : 'residents'}
+          {page?.total ?? '—'} {page?.total === 1 ? 'member' : 'members'}
         </Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openAdd} activeOpacity={0.85}>
-          <Ionicons name="add" size={22} color={colors.white} />
-          <Text style={styles.addBtnText}>Add</Text>
-        </TouchableOpacity>
+        {canManageMembers && (
+          <TouchableOpacity style={styles.addBtn} onPress={openAdd} activeOpacity={0.85}>
+            <Ionicons name="add" size={22} color={colors.white} />
+            <Text style={styles.addBtnText}>Add</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {error && (
@@ -231,8 +236,12 @@ export default function ResidentsScreen() {
           ) : (
             <EmptyState
               icon="people-outline"
-              title="No residents"
-              subtitle="Add members to your estate or invite them by email."
+              title="No members"
+              subtitle={
+                canManageMembers
+                  ? 'Add members to your estate or invite them by email.'
+                  : 'No members are registered yet.'
+              }
             />
           )
         }
@@ -252,56 +261,58 @@ export default function ResidentsScreen() {
                 </Text>
               </View>
             </View>
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => openEdit(item)}
-              >
-                <Ionicons name="create-outline" size={18} color={colors.brand[600]} />
-                <Text style={styles.actionLabel}>Edit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.actionBtn}
-                onPress={() => {
-                  Alert.alert(
-                    'Resend invite',
-                    `Send a new sign-up link to ${item.email}?`,
-                    [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Send',
-                        onPress: () => inviteMutation.mutate(item.id),
-                      },
-                    ]
-                  )
-                }}
-              >
-                <Ionicons name="mail-outline" size={18} color={colors.gray[600]} />
-                <Text style={styles.actionLabel}>Invite</Text>
-              </TouchableOpacity>
-              {item.isActive && item.id !== me?.id && (
+            {canManageMembers && (
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  style={styles.actionBtn}
+                  onPress={() => openEdit(item)}
+                >
+                  <Ionicons name="create-outline" size={18} color={colors.brand[600]} />
+                  <Text style={styles.actionLabel}>Edit</Text>
+                </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.actionBtn}
                   onPress={() => {
                     Alert.alert(
-                      'Deactivate',
-                      `Deactivate ${item.firstName} ${item.lastName}? They can be re-added later.`,
+                      'Resend invite',
+                      `Send a new sign-up link to ${item.email}?`,
                       [
                         { text: 'Cancel', style: 'cancel' },
                         {
-                          style: 'destructive',
-                          text: 'Deactivate',
-                          onPress: () => deactivateMutation.mutate(item.id),
+                          text: 'Send',
+                          onPress: () => inviteMutation.mutate(item.id),
                         },
                       ]
                     )
                   }}
                 >
-                  <Ionicons name="person-remove-outline" size={18} color={colors.red[600]} />
-                  <Text style={[styles.actionLabel, { color: colors.red[600] }]}>Deactivate</Text>
+                  <Ionicons name="mail-outline" size={18} color={colors.gray[600]} />
+                  <Text style={styles.actionLabel}>Invite</Text>
                 </TouchableOpacity>
-              )}
-            </View>
+                {item.isActive && item.id !== me?.id && (
+                  <TouchableOpacity
+                    style={styles.actionBtn}
+                    onPress={() => {
+                      Alert.alert(
+                        'Delete member',
+                        `Permanently remove ${item.firstName} ${item.lastName} and their login? This cannot be undone.`,
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          {
+                            style: 'destructive',
+                            text: 'Delete',
+                            onPress: () => deleteMemberMutation.mutate(item.id),
+                          },
+                        ]
+                      )
+                    }}
+                  >
+                    <Ionicons name="person-remove-outline" size={18} color={colors.red[600]} />
+                    <Text style={[styles.actionLabel, { color: colors.red[600] }]}>Delete</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            )}
           </View>
         )}
       />

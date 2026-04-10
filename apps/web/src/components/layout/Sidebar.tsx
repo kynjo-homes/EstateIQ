@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
     label: 'Members',
     href:  '/residents',
     icon:  Users,
-    roles: ['ADMIN', 'SUPER_ADMIN'],
+    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY'],
   },
   {
     label: 'Units',

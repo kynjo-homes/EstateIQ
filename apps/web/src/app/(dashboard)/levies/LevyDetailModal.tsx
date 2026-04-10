@@ -6,6 +6,8 @@ import { fetchJson } from '@/lib/fetchJson'
 import { useResident } from '@/context/ResidentContext'
 import LevyPayModal from './LevyPayModal'
 import LevyPaymentDetailModal from './LevyPaymentDetailModal'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
+import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
 
 interface PaymentRow {
   id: string
@@ -68,6 +70,8 @@ export default function LevyDetailModal({ levy, onClose }: Props) {
   const [filter, setFilter]     = useState<'ALL' | 'PAID' | 'PENDING'>('ALL')
   const [searchQuery, setSearchQuery] = useState('')
   const [detailPaymentId, setDetailPaymentId] = useState<string | null>(null)
+  const [approvePaymentId, setApprovePaymentId] = useState<string | null>(null)
+  const [toast, setToast] = useState<DashboardToastPayload | null>(null)
 
   async function loadDetail() {
     const { data } = await fetchJson<LevyDetail>(`/api/levies/${levy.id}`)
@@ -91,16 +95,24 @@ export default function LevyDetailModal({ levy, onClose }: Props) {
         body: JSON.stringify({ paymentId }),
       }
     )
-    if (error) { alert(error); return }
+    if (error) {
+      setToast({ message: error, variant: 'error' })
+      return
+    }
     if (data?.authorizationUrl) window.open(data.authorizationUrl, '_blank')
   }
 
-  async function handleApprove(paymentId: string) {
-    if (!confirm('Mark this payment as received and approved?')) return
+  async function executeApprove() {
+    if (!approvePaymentId) return
+    const paymentId = approvePaymentId
     setApproving(paymentId)
     const { error } = await fetchJson(`/api/payments/${paymentId}/approve`, { method: 'PATCH' })
     setApproving(null)
-    if (error) { alert(error); return }
+    setApprovePaymentId(null)
+    if (error) {
+      setToast({ message: error, variant: 'error' })
+      return
+    }
     await loadDetail()
     setDetailPaymentId(null)
   }
@@ -137,6 +149,7 @@ export default function LevyDetailModal({ levy, onClose }: Props) {
     : null
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col">
 
@@ -365,7 +378,7 @@ export default function LevyDetailModal({ levy, onClose }: Props) {
                                 </a>
                                 <button
                                   type="button"
-                                  onClick={() => handleApprove(p.id)}
+                                  onClick={() => setApprovePaymentId(p.id)}
                                   disabled={approving === p.id}
                                   className="inline-flex items-center gap-1 text-xs text-green-700 font-medium disabled:opacity-50"
                                 >
@@ -425,9 +438,24 @@ export default function LevyDetailModal({ levy, onClose }: Props) {
             setPayModalPaymentId(detailPayment.id)
           }}
           onPaystack={() => void handlePaystack(detailPayment.id)}
-          onApprove={() => void handleApprove(detailPayment.id)}
+          onApprove={() => setApprovePaymentId(detailPayment.id)}
         />
       )}
     </div>
+
+      <DashboardConfirmDialog
+        open={approvePaymentId !== null}
+        title="Approve payment"
+        description="Mark this transfer as received and approved? Residents will see it as paid."
+        confirmLabel="Approve"
+        cancelLabel="Cancel"
+        variant="primary"
+        loading={approvePaymentId !== null && approving === approvePaymentId}
+        onCancel={() => setApprovePaymentId(null)}
+        onConfirm={() => void executeApprove()}
+      />
+
+      <DashboardToast toast={toast} onDismiss={() => setToast(null)} />
+    </>
   )
 }

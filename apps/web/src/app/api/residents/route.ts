@@ -28,6 +28,7 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const where = { estateId: admin.estateId }
     const isEstateAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(admin.role)
+    const canViewFullMemberList = isEstateAdmin || admin.role === 'SECURITY'
 
     if (searchParams.get('format') === 'csv') {
       if (!isEstateAdmin) {
@@ -75,7 +76,7 @@ export async function GET(req: Request) {
     }
 
     if (searchParams.get('all') === '1') {
-      if (!isEstateAdmin) {
+      if (!canViewFullMemberList) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       }
       const residents = await prisma.resident.findMany({

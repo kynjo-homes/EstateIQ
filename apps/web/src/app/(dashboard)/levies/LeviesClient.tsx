@@ -6,6 +6,8 @@ import { fetchJson } from '@/lib/fetchJson'
 import CreateLevyModal from './CreateLevyModal'
 import LevyDetailModal from './LevyDetailModal'
 import { useResident } from '@/context/ResidentContext'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
+import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
 
 interface Levy {
   id: string
@@ -42,6 +44,8 @@ export default function LeviesClient() {
   const [bankName, setBankName]               = useState('')
   const [accountNo, setAccountNo]             = useState('')
   const [savingBank, setSavingBank]           = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [toast, setToast]                     = useState<DashboardToastPayload | null>(null)
 
   async function load() {
     setLoading(true)
@@ -71,17 +75,17 @@ export default function LeviesClient() {
     })
     setSavingBank(false)
     if (error) {
-      alert(error)
+      setToast({ message: error, variant: 'error' })
       return
     }
     load()
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this levy and all its payment records? This cannot be undone.')) return
+  async function executeDelete(id: string) {
     setDeleting(id)
     await fetchJson(`/api/levies/${id}`, { method: 'DELETE' })
     setDeleting(null)
+    setDeleteConfirmId(null)
     load()
   }
 
@@ -360,7 +364,7 @@ export default function LeviesClient() {
                     </button>
                     {isAdmin && (
                       <button
-                        onClick={() => handleDelete(levy.id)}
+                        onClick={() => setDeleteConfirmId(levy.id)}
                         disabled={deleting === levy.id}
                         className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                         title="Delete levy"
@@ -389,6 +393,22 @@ export default function LeviesClient() {
           onClose={() => setSelectedLevy(null)}
         />
       )}
+
+      <DashboardConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Delete levy"
+        description="This removes the levy and all payment records tied to it. This cannot be undone."
+        confirmLabel="Delete levy"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleteConfirmId !== null && deleting === deleteConfirmId}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) void executeDelete(deleteConfirmId)
+        }}
+      />
+
+      <DashboardToast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   )
 }

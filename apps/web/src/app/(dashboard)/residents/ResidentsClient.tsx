@@ -1,14 +1,18 @@
 'use client'
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import {
   UserPlus, Search, MoreHorizontal,
   Shield, User, HardHat, CheckCircle, XCircle,
-  Download,
+  Download, Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import AddResidentModal from './AddResidentModal'
 import ResidentDetailModal from './ResidentDetailModal'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
+import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
+import { useResident } from '@/context/ResidentContext'
 
 interface Unit { id: string; number: string; block: string | null }
 interface Resident {
@@ -29,17 +33,17 @@ const ROLE_ICONS: Record<string, any> = {
   ADMIN: Shield, SECURITY: HardHat, RESIDENT: User, SUPER_ADMIN: Shield,
 }
 
-type RoleFilter = 'ALL' | 'RESIDENT' | 'ADMIN' | 'SUPER_ADMIN' | 'SECURITY'
+type RoleFilter = 'ALL' | 'RESIDENT' | 'ADMIN' | 'SECURITY'
 
 const ROLE_TABS: { id: RoleFilter; label: string }[] = [
-  { id: 'ALL',         label: 'All' },
-  { id: 'RESIDENT',    label: 'Residents' },
-  { id: 'SECURITY',    label: 'Security' },
-  { id: 'ADMIN',       label: 'Admin' },
-  { id: 'SUPER_ADMIN', label: 'Super admin' },
+  { id: 'ALL',      label: 'All' },
+  { id: 'RESIDENT', label: 'Residents' },
+  { id: 'SECURITY', label: 'Security' },
+  { id: 'ADMIN',    label: 'Admin' },
 ]
 
 export default function ResidentsClient() {
+  const { canManageMembers } = useResident()
   const [residents, setResidents]               = useState<Resident[]>([])
   const [filtered, setFiltered]                 = useState<Resident[]>([])
   const [search, setSearch]                     = useState('')
@@ -50,7 +54,11 @@ export default function ResidentsClient() {
   const [menuOpen, setMenuOpen]                 = useState<string | null>(null)
   const [inviting, setInviting]                 = useState<string | null>(null)
   const [exporting, setExporting]               = useState(false)
-  const menuRef                                 = useRef<HTMLDivElement>(null)
+  const [deleting, setDeleting]                 = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId]   = useState<string | null>(null)
+  const [toast, setToast]                       = useState<DashboardToastPayload | null>(null)
+  const [menuPos, setMenuPos]                   = useState<{ top: number; left: number } | null>(null)
+  const actionButtonRefs                        = useRef<Record<string, HTMLButtonElement | null>>({})
 
   async function load() {
     setLoading(true)
@@ -64,11 +72,46 @@ export default function ResidentsClient() {
 
   useEffect(() => { load() }, [])
 
+  const updateMenuPosition = useCallback(() => {
+    if (!menuOpen) {
+      setMenuPos(null)
+      return
+    }
+    const btn = actionButtonRefs.current[menuOpen]
+    if (!btn) return
+    const rect = btn.getBoundingClientRect()
+    const MENU_W = 192
+    const MENU_H = 220
+    const spaceBelow = window.innerHeight - rect.bottom
+    const placeAbove = spaceBelow < MENU_H && rect.top > spaceBelow
+    const top = placeAbove ? rect.top - MENU_H - 4 : rect.bottom + 4
+    const left = Math.min(rect.right - MENU_W, window.innerWidth - MENU_W - 8)
+    setMenuPos({
+      top:  Math.max(8, top),
+      left: Math.max(8, left),
+    })
+  }, [menuOpen])
+
+  useLayoutEffect(() => {
+    updateMenuPosition()
+  }, [menuOpen, updateMenuPosition])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    window.addEventListener('scroll', updateMenuPosition, true)
+    window.addEventListener('resize', updateMenuPosition)
+    return () => {
+      window.removeEventListener('scroll', updateMenuPosition, true)
+      window.removeEventListener('resize', updateMenuPosition)
+    }
+  }, [menuOpen, updateMenuPosition])
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(null)
-      }
+      const t = e.target
+      if (!(t instanceof Element)) return
+      if (t.closest('[data-resident-actions]')) return
+      setMenuOpen(null)
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -104,7 +147,11 @@ export default function ResidentsClient() {
       const res = await fetch('/api/residents?format=csv', { credentials: 'include' })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
-        alert(typeof err?.error === 'string' ? err.error : 'Export failed.')
+        setToast({
+          message:
+            typeof err?.error === 'string' ? err.error : 'Export failed. Please try again.',
+          variant: 'error',
+        })
         return
       }
       const blob = await res.blob()
@@ -125,6 +172,30 @@ export default function ResidentsClient() {
     }
   }
 
+  async function executeDelete(id: string) {
+    setDeleting(id)
+    try {
+      const res = await fetch(`/api/residents/${id}`, { method: 'DELETE' })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setToast({
+          message:
+            typeof json?.error === 'string' ? json.error : 'Could not remove this member. Please try again.',
+          variant: 'error',
+        })
+        setDeleteConfirmId(null)
+        return
+      }
+      if (selectedResident?.id === id) setSelectedResident(null)
+      setMenuOpen(null)
+      setDeleteConfirmId(null)
+      setToast({ message: 'Member removed from the estate.', variant: 'success' })
+      await load()
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   async function handleInvite(id: string) {
     setInviting(id)
     const { error } = await fetchJson('/api/residents/invite', {
@@ -135,14 +206,15 @@ export default function ResidentsClient() {
     setInviting(null)
     setMenuOpen(null)
     if (error) {
-      alert(error)
+      setToast({ message: error, variant: 'error' })
     } else {
-      alert('Invitation email sent successfully.')
+      setToast({ message: 'Invitation email sent.', variant: 'success' })
     }
   }
 
   const active   = residents.filter(r =>  r.isActive).length
   const inactive = residents.filter(r => !r.isActive).length
+  const actionMenuResident = menuOpen ? residents.find(r => r.id === menuOpen) : null
 
   return (
     <div className="flex-1 overflow-y-auto p-6 space-y-5">
@@ -173,21 +245,25 @@ export default function ResidentsClient() {
             className="flex-1 text-sm focus:outline-none bg-transparent"
           />
         </div>
-        <button
-          type="button"
-          onClick={() => void exportCsv()}
-          disabled={loading || exporting || residents.length === 0}
-          className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-        >
-          <Download size={15} />
-          {exporting ? 'Exporting…' : 'Export CSV'}
-        </button>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
-        >
-          <UserPlus size={15} /> Add member
-        </button>
+        {canManageMembers && (
+          <>
+            <button
+              type="button"
+              onClick={() => void exportCsv()}
+              disabled={loading || exporting || residents.length === 0}
+              className="flex items-center gap-2 border border-gray-200 bg-white text-gray-700 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            >
+              <Download size={15} />
+              {exporting ? 'Exporting…' : 'Export CSV'}
+            </button>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-brand-700 transition-colors"
+            >
+              <UserPlus size={15} /> Add member
+            </button>
+          </>
+        )}
       </div>
 
       {/* Role filter */}
@@ -219,12 +295,12 @@ export default function ResidentsClient() {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-100 rounded-xl overflow-visible">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {['Resident', 'Unit', 'Role', 'Status', 'Joined', ''].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-medium text-gray-500">
+              {['Resident', 'Unit', 'Role', 'Status', 'Joined', ...(canManageMembers ? [''] : [])].map(h => (
+                <th key={h || 'actions'} className="text-left px-4 py-3 text-xs font-medium text-gray-500">
                   {h}
                 </th>
               ))}
@@ -233,14 +309,14 @@ export default function ResidentsClient() {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-gray-400 text-sm">
+                <td colSpan={canManageMembers ? 6 : 5} className="text-center py-12 text-gray-400 text-sm">
                   Loading...
                 </td>
               </tr>
             )}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-gray-400 text-sm">
+                <td colSpan={canManageMembers ? 6 : 5} className="text-center py-12 text-gray-400 text-sm">
                   {search
                     ? 'No members match your search.'
                     : roleFilter !== 'ALL'
@@ -308,45 +384,22 @@ export default function ResidentsClient() {
                     })}
                   </td>
 
-                  {/* Three-dot menu */}
-                  <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
-                    <div className="relative" ref={menuOpen === r.id ? menuRef : undefined}>
-                      <button
-                        onClick={() => setMenuOpen(menuOpen === r.id ? null : r.id)}
-                        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        <MoreHorizontal size={15} />
-                      </button>
-
-                      {menuOpen === r.id && (
-                        <div className="absolute right-0 top-8 bg-white border border-gray-100 rounded shadow-lg z-10 py-1 w-48">
-                          <button
-                            onClick={() => { setSelectedResident(r); setMenuOpen(null) }}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
-                          >
-                            View details
-                          </button>
-                          <button
-                            onClick={() => handleInvite(r.id)}
-                            disabled={inviting === r.id}
-                            className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-brand-600 disabled:opacity-50"
-                          >
-                            {inviting === r.id ? 'Sending...' : 'Send invite email'}
-                          </button>
-                          <div className="my-1 border-t border-gray-100" />
-                          <button
-                            onClick={() => toggleActive(r.id, r.isActive)}
-                            className={cn(
-                              'w-full text-left px-4 py-2 text-sm hover:bg-gray-50',
-                              r.isActive ? 'text-red-500' : 'text-green-600'
-                            )}
-                          >
-                            {r.isActive ? 'Deactivate' : 'Reactivate'}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </td>
+                  {canManageMembers && (
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
+                      <div className="relative" data-resident-actions={r.id}>
+                        <button
+                          type="button"
+                          ref={el => {
+                            actionButtonRefs.current[r.id] = el
+                          }}
+                          onClick={() => setMenuOpen(menuOpen === r.id ? null : r.id)}
+                          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <MoreHorizontal size={15} />
+                        </button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               )
             })}
@@ -354,8 +407,65 @@ export default function ResidentsClient() {
         </table>
       </div>
 
+      {canManageMembers &&
+        menuOpen &&
+        menuPos &&
+        actionMenuResident &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            data-resident-actions={menuOpen}
+            className="fixed z-[100] bg-white border border-gray-100 rounded-lg shadow-lg py-1 w-48"
+            style={{ top: menuPos.top, left: menuPos.left }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedResident(actionMenuResident)
+                setMenuOpen(null)
+              }}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-gray-700"
+            >
+              View details
+            </button>
+            <button
+              type="button"
+              onClick={() => handleInvite(actionMenuResident.id)}
+              disabled={inviting === actionMenuResident.id}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-brand-600 disabled:opacity-50"
+            >
+              {inviting === actionMenuResident.id ? 'Sending...' : 'Send invite email'}
+            </button>
+            <div className="my-1 border-t border-gray-100" />
+            <button
+              type="button"
+              onClick={() => toggleActive(actionMenuResident.id, actionMenuResident.isActive)}
+              className={cn(
+                'w-full text-left px-4 py-2 text-sm hover:bg-gray-50',
+                actionMenuResident.isActive ? 'text-red-500' : 'text-green-600'
+              )}
+            >
+              {actionMenuResident.isActive ? 'Deactivate' : 'Reactivate'}
+            </button>
+            <div className="my-1 border-t border-gray-100" />
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteConfirmId(actionMenuResident.id)
+                setMenuOpen(null)
+              }}
+              disabled={deleting === actionMenuResident.id}
+              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 text-red-600 flex items-center gap-2 disabled:opacity-50"
+            >
+              <Trash2 size={14} className="shrink-0" />
+              Delete member
+            </button>
+          </div>,
+          document.body
+        )}
+
       {/* Modals */}
-      {showAddModal && (
+      {canManageMembers && showAddModal && (
         <AddResidentModal
           onClose={() => setShowAddModal(false)}
           onSuccess={() => { setShowAddModal(false); load() }}
@@ -366,6 +476,7 @@ export default function ResidentsClient() {
         <ResidentDetailModal
           key={selectedResident.id}
           resident={selectedResident}
+          readOnly={!canManageMembers}
           onClose={() => setSelectedResident(null)}
           onToggleActive={(id, current) => {
             toggleActive(id, current)
@@ -374,6 +485,22 @@ export default function ResidentsClient() {
           onResidentPatch={patched => setSelectedResident(patched)}
         />
       )}
+
+      <DashboardConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Remove member permanently"
+        description="This deletes their profile, login, and related records for this estate. This action cannot be undone."
+        confirmLabel="Remove member"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleteConfirmId !== null && deleting === deleteConfirmId}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) void executeDelete(deleteConfirmId)
+        }}
+      />
+
+      <DashboardToast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   )
 }

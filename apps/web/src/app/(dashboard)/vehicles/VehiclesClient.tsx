@@ -7,6 +7,9 @@ import { useResident } from '@/context/ResidentContext'
 import RegisterVehicleModal from './RegisterVehicleModal'
 import VehicleStickerModal from './VehicleStickerModal'
 import VehicleLogsModal from './VehicleLogsModal'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
+
+type VehicleConfirm = { kind: 'deactivate' | 'rotate'; id: string }
 
 interface Vehicle {
   id: string
@@ -46,6 +49,7 @@ export default function VehiclesClient() {
   const [selectedLogs, setSelectedLogs]     = useState<Vehicle | null>(null)
   const [deleting, setDeleting]             = useState<string | null>(null)
   const [rotating, setRotating]             = useState<string | null>(null)
+  const [vehicleConfirm, setVehicleConfirm] = useState<VehicleConfirm | null>(null)
 
   async function load() {
     setLoading(true)
@@ -69,19 +73,19 @@ export default function VehiclesClient() {
     )
   }, [vehicles, search, isAdmin])
 
-  async function handleDeactivate(id: string) {
-    if (!confirm('Deactivate this vehicle? Its sticker will stop working immediately.')) return
-    setDeleting(id)
-    await fetchJson(`/api/vehicles/${id}`, { method: 'DELETE' })
-    setDeleting(null)
-    load()
-  }
-
-  async function handleRotateToken(id: string) {
-    if (!confirm('Rotate the QR token? The current sticker will be invalidated and a new one must be printed.')) return
-    setRotating(id)
-    await fetchJson(`/api/vehicles/${id}`, { method: 'PATCH' })
-    setRotating(null)
+  async function executeVehicleAction() {
+    if (!vehicleConfirm) return
+    const { kind, id } = vehicleConfirm
+    if (kind === 'deactivate') {
+      setDeleting(id)
+      await fetchJson(`/api/vehicles/${id}`, { method: 'DELETE' })
+      setDeleting(null)
+    } else {
+      setRotating(id)
+      await fetchJson(`/api/vehicles/${id}`, { method: 'PATCH' })
+      setRotating(null)
+    }
+    setVehicleConfirm(null)
     load()
   }
 
@@ -227,7 +231,7 @@ export default function VehiclesClient() {
                       <>
                         {/* Rotate token */}
                         <button
-                          onClick={() => handleRotateToken(v.id)}
+                          onClick={() => setVehicleConfirm({ kind: 'rotate', id: v.id })}
                           disabled={rotating === v.id}
                           className="p-2 rounded text-gray-400 hover:text-amber-600 hover:bg-amber-50 transition-colors disabled:opacity-40"
                           title="Rotate QR token (invalidates current sticker)"
@@ -237,7 +241,7 @@ export default function VehiclesClient() {
 
                         {/* Deactivate */}
                         <button
-                          onClick={() => handleDeactivate(v.id)}
+                          onClick={() => setVehicleConfirm({ kind: 'deactivate', id: v.id })}
                           disabled={deleting === v.id}
                           className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                           title="Deactivate vehicle"
@@ -274,6 +278,31 @@ export default function VehiclesClient() {
           onClose={() => setSelectedLogs(null)}
         />
       )}
+
+      <DashboardConfirmDialog
+        open={vehicleConfirm !== null}
+        title={
+          vehicleConfirm?.kind === 'rotate'
+            ? 'Rotate QR token'
+            : 'Deactivate vehicle'
+        }
+        description={
+          vehicleConfirm?.kind === 'rotate'
+            ? 'The current gate sticker will stop working. Print a new sticker after rotating.'
+            : 'The gate sticker for this vehicle will stop working immediately.'
+        }
+        confirmLabel={vehicleConfirm?.kind === 'rotate' ? 'Rotate token' : 'Deactivate'}
+        cancelLabel="Cancel"
+        variant={vehicleConfirm?.kind === 'rotate' ? 'primary' : 'danger'}
+        loading={
+          vehicleConfirm !== null &&
+          (vehicleConfirm.kind === 'deactivate'
+            ? deleting === vehicleConfirm.id
+            : rotating === vehicleConfirm.id)
+        }
+        onCancel={() => setVehicleConfirm(null)}
+        onConfirm={() => void executeVehicleAction()}
+      />
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import ReportIncidentModal from './ReportIncidentModal'
 import IncidentDetailModal from './IncidentDetailModal'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
 
 type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
 
@@ -40,6 +41,7 @@ export default function IncidentsClient() {
   const [showReport, setShowReport]   = useState(false)
   const [selected, setSelected]       = useState<Incident | null>(null)
   const [deleting, setDeleting]       = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -65,11 +67,12 @@ export default function IncidentsClient() {
     )
   }, [incidents, search, severityFilter, statusFilter])
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this incident report? This cannot be undone.')) return
+  async function executeDelete(id: string) {
     setDeleting(id)
     await fetchJson(`/api/incidents/${id}`, { method: 'DELETE' })
     setDeleting(null)
+    setDeleteConfirmId(null)
+    setSelected(s => (s?.id === id ? null : s))
     load()
   }
 
@@ -271,7 +274,7 @@ export default function IncidentsClient() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleDelete(inc.id)}
+                        onClick={() => setDeleteConfirmId(inc.id)}
                         disabled={deleting === inc.id}
                         className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                         title="Delete"
@@ -299,9 +302,23 @@ export default function IncidentsClient() {
           incident={selected}
           onClose={() => setSelected(null)}
           onResolve={() => { handleResolve(selected.id); setSelected(null) }}
-          onDelete={() => { handleDelete(selected.id); setSelected(null) }}
+          onDelete={() => setDeleteConfirmId(selected.id)}
         />
       )}
+
+      <DashboardConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Delete incident"
+        description="This permanently removes the incident report from the estate log."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleteConfirmId !== null && deleting === deleteConfirmId}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) void executeDelete(deleteConfirmId)
+        }}
+      />
     </div>
   )
 }

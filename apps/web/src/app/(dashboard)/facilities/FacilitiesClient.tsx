@@ -7,6 +7,7 @@ import AddFacilityModal from './AddFacilityModal'
 import BookFacilityModal from './BookFacilityModal'
 import MyBookingsPanel from './MyBookingsPanel'
 import { useResident } from '@/context/ResidentContext'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
 
 interface Booking {
   id: string
@@ -33,6 +34,7 @@ export default function FacilitiesClient() {
   const [showMyBookings, setShowMyBookings]     = useState(false)
   const [booking, setBooking]                   = useState<Facility | null>(null)
   const [deleting, setDeleting]                 = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId]   = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -43,11 +45,11 @@ export default function FacilitiesClient() {
 
   useEffect(() => { load() }, [])
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this facility and all its bookings?')) return
+  async function executeDelete(id: string) {
     setDeleting(id)
     await fetchJson(`/api/facilities/${id}`, { method: 'DELETE' })
     setDeleting(null)
+    setDeleteConfirmId(null)
     load()
   }
 
@@ -133,7 +135,7 @@ export default function FacilitiesClient() {
                     </div>
                     {isAdmin && (
                       <button
-                        onClick={() => handleDelete(f.id)}
+                        onClick={() => setDeleteConfirmId(f.id)}
                         disabled={deleting === f.id}
                         className="p-1.5 rounded text-green-200 hover:text-white hover:bg-brand-500 transition-colors disabled:opacity-50"
                       >
@@ -209,6 +211,20 @@ export default function FacilitiesClient() {
       {showMyBookings && (
         <MyBookingsPanel onClose={() => setShowMyBookings(false)} />
       )}
+
+      <DashboardConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Delete facility"
+        description="This removes the facility and all scheduled bookings for it."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleteConfirmId !== null && deleting === deleteConfirmId}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) void executeDelete(deleteConfirmId)
+        }}
+      />
     </div>
   )
 }

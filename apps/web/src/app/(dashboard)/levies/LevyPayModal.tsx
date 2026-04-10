@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { X, Copy, Check, Loader2, ExternalLink } from 'lucide-react'
 import { fetchJson } from '@/lib/fetchJson'
 import { uploadImageFile } from '@/lib/uploadImage'
+import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
 
 interface Props {
   paymentId: string
@@ -35,6 +36,7 @@ export default function LevyPayModal({
   const [copied, setCopied] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [toast, setToast] = useState<DashboardToastPayload | null>(null)
 
   const hasBank = Boolean(duesBankName?.trim() && duesAccountNumber?.trim())
 
@@ -56,7 +58,7 @@ export default function LevyPayModal({
     const result = await uploadImageFile(file, { folder: 'levies', onlyImages: false })
     setUploading(false)
     if ('error' in result) {
-      alert(result.error)
+      setToast({ message: result.error, variant: 'error' })
       return
     }
     setSubmitting(true)
@@ -67,7 +69,7 @@ export default function LevyPayModal({
     })
     setSubmitting(false)
     if (error) {
-      alert(error)
+      setToast({ message: error, variant: 'error' })
       return
     }
     onSuccess()
@@ -75,6 +77,7 @@ export default function LevyPayModal({
   }
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[70] p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
@@ -185,5 +188,7 @@ export default function LevyPayModal({
         </div>
       </div>
     </div>
+    <DashboardToast toast={toast} onDismiss={() => setToast(null)} />
+    </>
   )
 }

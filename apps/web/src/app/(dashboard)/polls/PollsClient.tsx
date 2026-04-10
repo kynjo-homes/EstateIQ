@@ -8,6 +8,8 @@ import PollDetailModal from './PollDetailModal'
 import PollVoteOptions from './PollVoteOptions'
 import { useResident } from '@/context/ResidentContext'
 import type { Poll } from './pollTypes'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
+import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
 
 export default function PollsClient() {
   const { isAdmin }                       = useResident()
@@ -17,6 +19,8 @@ export default function PollsClient() {
   const [detailPoll, setDetailPoll]       = useState<Poll | null>(null)
   const [voting, setVoting]               = useState<string | null>(null)
   const [deleting, setDeleting]           = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [toast, setToast]                 = useState<DashboardToastPayload | null>(null)
   const [filter, setFilter]               = useState<'ALL' | 'ACTIVE' | 'ENDED'>('ALL')
 
   async function load() {
@@ -41,15 +45,18 @@ export default function PollsClient() {
       body:    JSON.stringify({ optionIndex: Number(optionIndex) }),
     })
     setVoting(null)
-    if (error) { alert(error); return }
+    if (error) {
+      setToast({ message: error, variant: 'error' })
+      return
+    }
     load()
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this poll and all its votes?')) return
+  async function executeDelete(id: string) {
     setDeleting(id)
     await fetchJson(`/api/polls/${id}`, { method: 'DELETE' })
     setDeleting(null)
+    setDeleteConfirmId(null)
     load()
   }
 
@@ -191,7 +198,7 @@ export default function PollsClient() {
                       {isAdmin && (
                         <button
                           type="button"
-                          onClick={() => handleDelete(poll.id)}
+                          onClick={() => setDeleteConfirmId(poll.id)}
                           disabled={deleting === poll.id}
                           className="p-1.5 rounded text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40"
                           aria-label="Delete poll"
@@ -244,9 +251,25 @@ export default function PollsClient() {
           isAdmin={isAdmin}
           onClose={() => setDetailPoll(null)}
           onVote={handleVote}
-          onDelete={handleDelete}
+          onDelete={id => setDeleteConfirmId(id)}
         />
       )}
+
+      <DashboardConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Delete poll"
+        description="This removes the poll and every vote cast on it. This cannot be undone."
+        confirmLabel="Delete poll"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleteConfirmId !== null && deleting === deleteConfirmId}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) void executeDelete(deleteConfirmId)
+        }}
+      />
+
+      <DashboardToast toast={toast} onDismiss={() => setToast(null)} />
     </div>
   )
 }

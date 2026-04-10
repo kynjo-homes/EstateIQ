@@ -9,6 +9,7 @@ import QRCodeLib from 'qrcode'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import { useResident } from '@/context/ResidentContext'
+import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
 
 interface Unit { id: string; number: string; block: string | null }
 interface Resident {
@@ -117,6 +118,8 @@ interface Props {
   onClose: () => void
   onToggleActive: (id: string, current: boolean) => void
   onResidentPatch?: (resident: Resident) => void
+  /** Security and other viewers: profile only, no history tabs or member management. */
+  readOnly?: boolean
 }
 
 function escHtml(s: string) {
@@ -145,6 +148,7 @@ export default function ResidentDetailModal({
   onClose,
   onToggleActive,
   onResidentPatch,
+  readOnly = false,
 }: Props) {
   const { profile, isAdmin } = useResident()
   const RoleIcon = ROLE_ICONS[resident.role] ?? User
@@ -155,6 +159,11 @@ export default function ResidentDetailModal({
   const [historyError, setHistoryError] = useState<string | null>(null)
   const [qrOrigin, setQrOrigin] = useState('')
   const [rotatingQr, setRotatingQr] = useState(false)
+  const [toast, setToast] = useState<DashboardToastPayload | null>(null)
+
+  useEffect(() => {
+    if (readOnly) setTab('profile')
+  }, [readOnly])
 
   useEffect(() => {
     setQrOrigin(typeof window !== 'undefined' ? window.location.origin : '')
@@ -208,7 +217,7 @@ export default function ResidentDetailModal({
     )
     setRotatingQr(false)
     if (error) {
-      alert(error)
+      setToast({ message: error, variant: 'error' })
       return
     }
     if (data) onResidentPatch(data)
@@ -290,6 +299,12 @@ export default function ResidentDetailModal({
   }
 
   useEffect(() => {
+    if (readOnly) {
+      setHistoryLoading(false)
+      setHistoryError(null)
+      setHistory(null)
+      return
+    }
     let cancelled = false
     async function load() {
       setHistoryLoading(true)
@@ -306,9 +321,10 @@ export default function ResidentDetailModal({
     }
     load()
     return () => { cancelled = true }
-  }, [resident.id])
+  }, [resident.id, readOnly])
 
   return (
+    <>
     <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
 
@@ -356,30 +372,32 @@ export default function ResidentDetailModal({
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="border-b border-gray-100 px-2 shrink-0 overflow-x-auto">
-          <div className="flex min-w-0 gap-0.5">
-            {TABS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setTab(id)}
-                className={cn(
-                  'px-3 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
-                  tab === id
-                    ? 'border-brand-600 text-brand-700'
-                    : 'border-transparent text-gray-500 hover:text-gray-800'
-                )}
-              >
-                {label}
-              </button>
-            ))}
+        {/* Tabs — admins only (history requires admin API). */}
+        {!readOnly && (
+          <div className="border-b border-gray-100 px-2 shrink-0 overflow-x-auto">
+            <div className="flex min-w-0 gap-0.5">
+              {TABS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTab(id)}
+                  className={cn(
+                    'px-3 py-2.5 text-xs sm:text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors',
+                    tab === id
+                      ? 'border-brand-600 text-brand-700'
+                      : 'border-transparent text-gray-500 hover:text-gray-800'
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Tab panels */}
         <div className="flex-1 min-h-0 overflow-y-auto">
-          {tab === 'profile' && (
+          {(readOnly || tab === 'profile') && (
             <div className="px-6 py-4 space-y-4">
               {primaryDetails.map(({ icon: Icon, label, value, muted }) => (
                 <div key={label} className="flex items-start gap-3">
@@ -503,7 +521,7 @@ export default function ResidentDetailModal({
             </div>
           )}
 
-          {tab === 'payments' && (
+          {!readOnly && tab === 'payments' && (
             <div className="px-6 py-4">
               {historyLoading && (
                 <p className="text-sm text-gray-500">Loading payment history…</p>
@@ -562,7 +580,7 @@ export default function ResidentDetailModal({
             </div>
           )}
 
-          {tab === 'maintenance' && (
+          {!readOnly && tab === 'maintenance' && (
             <div className="px-6 py-4">
               {historyLoading && (
                 <p className="text-sm text-gray-500">Loading maintenance requests…</p>
@@ -612,7 +630,7 @@ export default function ResidentDetailModal({
             </div>
           )}
 
-          {tab === 'incidents' && (
+          {!readOnly && tab === 'incidents' && (
             <div className="px-6 py-4">
               {historyLoading && (
                 <p className="text-sm text-gray-500">Loading incident reports…</p>
@@ -669,7 +687,7 @@ export default function ResidentDetailModal({
             </div>
           )}
 
-          {tab === 'vehicles' && (
+          {!readOnly && tab === 'vehicles' && (
             <div className="px-6 py-4">
               {historyLoading && (
                 <p className="text-sm text-gray-500">Loading vehicles…</p>
@@ -730,33 +748,44 @@ export default function ResidentDetailModal({
           )}
         </div>
 
-        {/* Actions — profile tab only */}
+        {/* Actions — profile tab only; read-only viewers get Close only */}
         {tab === 'profile' && (
           <div className="px-6 pb-6 pt-2 border-t border-gray-100 flex gap-3 shrink-0 bg-white">
-            <button
-              onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
-            >
-              Close
-            </button>
-            <button
-              onClick={() => {
-                onToggleActive(resident.id, resident.isActive)
-                onClose()
-              }}
-              className={cn(
-                'flex-1 rounded py-2.5 text-sm font-medium transition-colors',
-                resident.isActive
-                  ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                  : 'bg-green-50 text-green-700 hover:bg-green-100'
-              )}
-            >
-              {resident.isActive ? 'Deactivate resident' : 'Reactivate resident'}
-            </button>
+            {readOnly ? (
+              <button
+                onClick={onClose}
+                className="w-full border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={onClose}
+                  className="flex-1 border border-gray-200 text-gray-700 rounded py-2.5 text-sm font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Close
+                </button>
+                <button
+                  onClick={() => {
+                    onToggleActive(resident.id, resident.isActive)
+                    onClose()
+                  }}
+                  className={cn(
+                    'flex-1 rounded py-2.5 text-sm font-medium transition-colors',
+                    resident.isActive
+                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  )}
+                >
+                  {resident.isActive ? 'Deactivate resident' : 'Reactivate resident'}
+                </button>
+              </>
+            )}
           </div>
         )}
 
-        {tab !== 'profile' && (
+        {!readOnly && tab !== 'profile' && (
           <div className="px-6 pb-6 pt-2 border-t border-gray-100 shrink-0 bg-white">
             <button
               onClick={onClose}
@@ -768,5 +797,7 @@ export default function ResidentDetailModal({
         )}
       </div>
     </div>
+    <DashboardToast toast={toast} onDismiss={() => setToast(null)} />
+    </>
   )
 }

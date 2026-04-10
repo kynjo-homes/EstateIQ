@@ -124,10 +124,57 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    await prisma.resident.update({
+    if (admin.id === id) {
+      return NextResponse.json(
+        { error: 'You cannot remove your own account from the estate.' },
+        { status: 400 }
+      )
+    }
+
+    const target = await prisma.resident.findFirst({
       where: { id, estateId: admin.estateId },
-      data: { isActive: false },
+      select: { id: true, userId: true },
     })
+    if (!target) {
+      return NextResponse.json({ error: 'Resident not found' }, { status: 404 })
+    }
+
+    const authUserId = target.userId
+
+    // Prisma interactive transactions default to timeout 5000ms — large deletes can exceed that.
+    await prisma.$transaction(
+      async tx => {
+        await tx.inviteToken.deleteMany({ where: { residentId: id } })
+
+        await tx.maintenanceRequest.updateMany({
+          where: { assignedTo: id },
+          data:  { assignedTo: null },
+        })
+
+        await tx.scanLog.deleteMany({ where: { residentId: id } })
+
+        const vehicles = await tx.vehicle.findMany({
+          where: { residentId: id },
+          select: { id: true },
+        })
+        const vehicleIds = vehicles.map(v => v.id)
+        if (vehicleIds.length > 0) {
+          await tx.scanLog.deleteMany({ where: { vehicleId: { in: vehicleIds } } })
+        }
+        await tx.vehicle.deleteMany({ where: { residentId: id } })
+
+        await tx.vote.deleteMany({ where: { residentId: id } })
+        await tx.facilityBooking.deleteMany({ where: { residentId: id } })
+        await tx.visitor.deleteMany({ where: { residentId: id } })
+        await tx.payment.deleteMany({ where: { residentId: id } })
+        await tx.maintenanceRequest.deleteMany({ where: { submittedBy: id } })
+        await tx.securityIncident.deleteMany({ where: { reportedBy: id } })
+
+        await tx.resident.delete({ where: { id, estateId: admin.estateId } })
+        await tx.authUser.delete({ where: { id: authUserId } })
+      },
+      { maxWait: 10000, timeout: 60000 }
+    )
 
     return NextResponse.json({ success: true })
   } catch (err: any) {

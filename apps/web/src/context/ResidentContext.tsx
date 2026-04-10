@@ -13,15 +13,22 @@ interface ResidentProfile {
 }
 
 interface ResidentContextType {
-  profile:  ResidentProfile | null
-  loading:  boolean
-  isAdmin:  boolean
+  profile: ResidentProfile | null
+  loading: boolean
+  /** Estate admins (manage most estate features). */
+  isAdmin: boolean
+  /** Admins + super admins — can add/edit/remove members. */
+  canManageMembers: boolean
+  /** Admins, super admins, or security — can open the members directory (security is view-only). */
+  canViewMembers: boolean
 }
 
 const ResidentContext = createContext<ResidentContextType>({
   profile: null,
   loading: true,
   isAdmin: false,
+  canManageMembers: false,
+  canViewMembers: false,
 })
 
 export function ResidentProvider({ children }: { children: ReactNode }) {
@@ -37,10 +44,15 @@ export function ResidentProvider({ children }: { children: ReactNode }) {
     load()
   }, [])
 
-  const isAdmin = profile?.role === 'ADMIN' || profile?.role === 'SUPER_ADMIN'
+  const role = profile?.role
+  const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN'
+  const canManageMembers = isAdmin
+  const canViewMembers = isAdmin || role === 'SECURITY'
 
   return (
-    <ResidentContext.Provider value={{ profile, loading, isAdmin }}>
+    <ResidentContext.Provider
+      value={{ profile, loading, isAdmin, canManageMembers, canViewMembers }}
+    >
       {children}
     </ResidentContext.Provider>
   )

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
 import AnnouncementModal from './AnnouncementModal'
 import { useResident } from '@/context/ResidentContext'
+import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
 
 type Priority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
 
@@ -55,6 +56,7 @@ export default function AnnouncementsClient() {
   const [expanded, setExpanded]           = useState<string | null>(null)
   const [view, setView]                   = useState<'kanban' | 'list'>('kanban')
   const [deleting, setDeleting]           = useState<string | null>(null)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -65,11 +67,11 @@ export default function AnnouncementsClient() {
 
   useEffect(() => { load() }, [])
 
-  async function handleDelete(id: string) {
-    if (!confirm('Delete this announcement? This cannot be undone.')) return
+  async function executeDelete(id: string) {
     setDeleting(id)
     await fetchJson(`/api/announcements/${id}`, { method: 'DELETE' })
     setDeleting(null)
+    setDeleteConfirmId(null)
     load()
   }
 
@@ -221,7 +223,7 @@ export default function AnnouncementsClient() {
                         isAdmin={isAdmin}
                         deleting={deleting === a.id}
                         onEdit={() => { setEditing(a); setShowModal(true) }}
-                        onDelete={() => handleDelete(a.id)}
+                        onDelete={() => setDeleteConfirmId(a.id)}
                       />
                     ))}
                   </div>
@@ -283,7 +285,7 @@ export default function AnnouncementsClient() {
                           </button>
                           <button
                             type="button"
-                            onClick={() => handleDelete(a.id)}
+                            onClick={() => setDeleteConfirmId(a.id)}
                             disabled={deleting === a.id}
                             className="p-2 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40"
                             title="Delete"
@@ -308,6 +310,20 @@ export default function AnnouncementsClient() {
           onSuccess={() => { setShowModal(false); setEditing(null); load() }}
         />
       )}
+
+      <DashboardConfirmDialog
+        open={deleteConfirmId !== null}
+        title="Delete announcement"
+        description="This removes the announcement for everyone in the estate. This cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={deleteConfirmId !== null && deleting === deleteConfirmId}
+        onCancel={() => setDeleteConfirmId(null)}
+        onConfirm={() => {
+          if (deleteConfirmId) void executeDelete(deleteConfirmId)
+        }}
+      />
     </div>
   )
 }
