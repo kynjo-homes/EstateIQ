@@ -104,7 +104,8 @@ export async function POST(req: Request) {
         plan === 'PROFESSIONAL'
           ? `${result.estate.name} is set up on Professional. Finish payment to unlock Professional features — you can also complete this anytime from Billing.`
           : `${result.estate.name} is ready. Open your estate page or dashboard to explore announcements, levies, visitors, and more.`,
-      href: `/${result.estate.slug}`,
+      basePath: '/dashboard',
+      focus: null,
     }).catch(err => {
       logger.error('[POST /api/onboarding] Welcome notification failed', {
         message: err instanceof Error ? err.message : String(err),

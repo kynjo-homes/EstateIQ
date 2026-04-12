@@ -71,7 +71,8 @@ export async function POST(req: Request) {
       type: 'VISITOR_ARRIVED',
       title: `${visitor.name} has arrived`,
       body: visitor.purpose ? `Purpose: ${visitor.purpose}` : null,
-      href: '/visitors',
+      basePath: '/visitors',
+      focus: { kind: 'VISITOR', id: visitor.id },
     })
 
     const unitLabel = visitor.resident.unit

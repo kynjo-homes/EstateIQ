@@ -70,14 +70,14 @@ export async function POST(req: Request) {
             select: { id: true },
           })
           const estateName = estateBefore.name
-          const href = estateBefore.slug ? `/${estateBefore.slug}` : '/dashboard'
           await Promise.all(
             admins.map((r) =>
               notifyResident(r.id, {
                 type: 'subscription_activated',
                 title: 'Professional activation successful',
                 body: `${estateName} is now on Professional. Your subscription is active for 12 months — all features are unlocked.`,
-                href,
+                basePath: '/subscription',
+                focus: null,
               }).catch((err) => {
                 logger.error('[POST /api/webhooks/paystack] Activation notification failed', {
                   residentId: r.id,

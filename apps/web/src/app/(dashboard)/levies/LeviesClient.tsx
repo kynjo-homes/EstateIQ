@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Plus, CreditCard, Trash2, TrendingUp, Clock, CheckCircle2, Building2, CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchJson } from '@/lib/fetchJson'
@@ -8,6 +8,7 @@ import LevyDetailModal from './LevyDetailModal'
 import { useResident } from '@/context/ResidentContext'
 import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
 import DashboardToast, { type DashboardToastPayload } from '@/components/dashboard/DashboardToast'
+import { useNotificationDeepLink } from '@/hooks/useNotificationDeepLink'
 
 interface Levy {
   id: string
@@ -46,6 +47,14 @@ export default function LeviesClient() {
   const [savingBank, setSavingBank]           = useState(false)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [toast, setToast]                     = useState<DashboardToastPayload | null>(null)
+  const [highlightLevyId, setHighlightLevyId]   = useState<string | null>(null)
+  const pendingLevyFocus = useRef<string | null>(null)
+
+  useNotificationDeepLink((p) => {
+    if (p.focusKind === 'LEVY' && p.focusId) {
+      pendingLevyFocus.current = p.focusId
+    }
+  })
 
   async function load() {
     setLoading(true)
@@ -64,6 +73,24 @@ export default function LeviesClient() {
   }
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (loading || !pendingLevyFocus.current) return
+    const id = pendingLevyFocus.current
+    const levy = levies.find((l) => l.id === id)
+    if (!levy) {
+      pendingLevyFocus.current = null
+      return
+    }
+    pendingLevyFocus.current = null
+    setSelectedLevy(levy)
+    setHighlightLevyId(id)
+    queueMicrotask(() => {
+      document.getElementById(`levy-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    const t = window.setTimeout(() => setHighlightLevyId(null), 4500)
+    return () => window.clearTimeout(t)
+  }, [loading, levies])
 
   async function saveBankDetails(e: React.FormEvent) {
     e.preventDefault()
@@ -288,7 +315,13 @@ export default function LeviesClient() {
             return (
               <div
                 key={levy.id}
-                className="bg-white border border-gray-100 rounded-xl p-5 hover:border-brand-200 hover:shadow-sm transition-all"
+                id={`levy-${levy.id}`}
+                className={cn(
+                  'bg-white border rounded-xl p-5 transition-all',
+                  highlightLevyId === levy.id
+                    ? 'border-brand-400 shadow-md ring-2 ring-brand-200'
+                    : 'border-gray-100 hover:border-brand-200 hover:shadow-sm'
+                )}
               >
                 <div className="flex items-start gap-4">
                   <button

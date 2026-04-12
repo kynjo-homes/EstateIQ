@@ -81,7 +81,8 @@ export async function POST(req: Request) {
       type: 'VISITOR_DENIED',
       title: `Entry denied for ${visitor.name}`,
       body: visitor.purpose ? `Stated purpose: ${visitor.purpose}` : null,
-      href: '/visitors',
+      basePath: '/visitors',
+      focus: { kind: 'VISITOR', id: visitor.id },
     })
 
     const unitLabel = visitor.resident.unit

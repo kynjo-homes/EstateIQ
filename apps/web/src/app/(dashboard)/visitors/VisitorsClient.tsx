@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Plus, ShieldCheck, Clock, CheckCircle2,
   XCircle, LogOut, Search, QrCode, Eye, Ban,
@@ -12,6 +12,7 @@ import RegisterVisitorModal from './RegisterVisitorModal'
 import VisitorDetailModal from './VisitorDetailModal'
 import GateCheckinPanel from './GateCheckinPanel'
 import VisitorToast from './VisitorToast'
+import { useNotificationDeepLink } from '@/hooks/useNotificationDeepLink'
 
 type VisitorStatus = 'EXPECTED' | 'ARRIVED' | 'EXITED' | 'DENIED' | 'CANCELLED'
 
@@ -62,6 +63,14 @@ export default function VisitorsClient() {
   const [showGate, setShowGate]           = useState(false)
   const [viewVisitor, setViewVisitor]     = useState<Visitor | null>(null)
   const [toast, setToast]                 = useState<{ name: string; purpose: string | null } | null>(null)
+  const [highlightVisitorId, setHighlightVisitorId] = useState<string | null>(null)
+  const pendingVisitorFocus = useRef<string | null>(null)
+
+  useNotificationDeepLink((p) => {
+    if (p.focusKind === 'VISITOR' && p.focusId) {
+      pendingVisitorFocus.current = p.focusId
+    }
+  })
 
   async function load() {
     setLoading(true)
@@ -71,6 +80,26 @@ export default function VisitorsClient() {
   }
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (loading || !pendingVisitorFocus.current) return
+    const id = pendingVisitorFocus.current
+    const v = visitors.find((x) => x.id === id)
+    if (!v) {
+      pendingVisitorFocus.current = null
+      return
+    }
+    pendingVisitorFocus.current = null
+    setStatusFilter('ALL')
+    setSearch('')
+    setViewVisitor(v)
+    setHighlightVisitorId(id)
+    queueMicrotask(() => {
+      document.getElementById(`visitor-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    const t = window.setTimeout(() => setHighlightVisitorId(null), 4500)
+    return () => window.clearTimeout(t)
+  }, [loading, visitors])
 
   // Real-time: when security checks in a visitor, show a toast and refresh the list
   useSSE({
@@ -225,7 +254,13 @@ export default function VisitorsClient() {
             return (
               <div
                 key={v.id}
-                className="bg-white border border-gray-100 rounded-xl p-5 hover:border-gray-200 transition-colors"
+                id={`visitor-${v.id}`}
+                className={cn(
+                  'bg-white border rounded-xl p-5 transition-colors',
+                  highlightVisitorId === v.id
+                    ? 'border-brand-400 shadow-md ring-2 ring-brand-200'
+                    : 'border-gray-100 hover:border-gray-200'
+                )}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1 min-w-0">

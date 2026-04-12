@@ -9,6 +9,7 @@ export interface DashboardNavItem {
 /** Primary sidebar navigation (order matches the sidebar). */
 export const DASHBOARD_NAV_ITEMS: DashboardNavItem[] = [
   { label: 'Dashboard', href: '/dashboard', roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'] },
+  { label: 'Notifications', href: '/notifications', roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'] },
   { label: 'Members', href: '/residents', roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY'] },
   { label: 'Units', href: '/units', roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'] },
   { label: 'Announcements', href: '/announcements', roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'] },

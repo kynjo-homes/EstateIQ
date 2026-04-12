@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
-import { sendToResident } from '@/lib/sseStore'
+import { notifyResident } from '@/lib/notifyResident'
 
 export async function GET() {
   try {
@@ -68,19 +68,14 @@ export async function POST(req: Request) {
       select: { id: true },
     })
     const preview = body.trim().slice(0, 280)
-    if (members.length) {
-      await prisma.inAppNotification.createMany({
-        data: members.map((m) => ({
-          residentId: m.id,
-          type: 'ANNOUNCEMENT',
-          title: `New announcement: ${title.trim()}`,
-          body: preview,
-          href: '/announcements',
-        })),
+    for (const m of members) {
+      await notifyResident(m.id, {
+        type: 'ANNOUNCEMENT',
+        title: `New announcement: ${title.trim()}`,
+        body: preview,
+        basePath: '/announcements',
+        focus: { kind: 'ANNOUNCEMENT', id: announcement.id },
       })
-      for (const m of members) {
-        sendToResident(m.id, 'notification', { refresh: true })
-      }
     }
 
     return NextResponse.json(announcement, { status: 201 })

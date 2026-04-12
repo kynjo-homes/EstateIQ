@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 import { MobileNavProvider, useMobileNav } from '@/context/MobileNavContext'
 import Sidebar from '@/components/layout/Sidebar'
+import NotificationNiOnlyCleaner from '@/components/layout/NotificationNiOnlyCleaner'
 import { cn } from '@/lib/utils'
 
 function DashboardShellInner({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,9 @@ function DashboardShellInner({ children }: { children: React.ReactNode }) {
       <Sidebar />
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <Suspense fallback={null}>
+          <NotificationNiOnlyCleaner />
+        </Suspense>
         {children}
       </div>
     </div>

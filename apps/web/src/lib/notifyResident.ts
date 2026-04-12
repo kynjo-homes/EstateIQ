@@ -1,5 +1,6 @@
 import { prisma } from '@estateiq/database'
 import { sendToResident } from '@/lib/sseStore'
+import { buildNotificationHref } from '@/lib/notificationDeepLink'
 
 export async function notifyResident(
   residentId: string,
@@ -7,7 +8,9 @@ export async function notifyResident(
     type: string
     title: string
     body?: string | null
-    href?: string | null
+    /** Dashboard path, e.g. `/visitors` (deep link query is appended). */
+    basePath: string
+    focus?: { kind: string; id: string } | null
   }
 ) {
   const n = await prisma.inAppNotification.create({
@@ -16,16 +19,24 @@ export async function notifyResident(
       type: data.type,
       title: data.title,
       body: data.body ?? null,
-      href: data.href ?? null,
+      href: null,
     },
   })
-  sendToResident(residentId, 'notification', {
-    id: n.id,
-    type: n.type,
-    title: n.title,
-    body: n.body,
-    href: n.href,
-    createdAt: n.createdAt.toISOString(),
+  const href = buildNotificationHref(data.basePath, {
+    notificationId: n.id,
+    focus: data.focus ?? null,
   })
-  return n
+  const updated = await prisma.inAppNotification.update({
+    where: { id: n.id },
+    data: { href },
+  })
+  sendToResident(residentId, 'notification', {
+    id: updated.id,
+    type: updated.type,
+    title: updated.title,
+    body: updated.body,
+    href: updated.href,
+    createdAt: updated.createdAt.toISOString(),
+  })
+  return updated
 }

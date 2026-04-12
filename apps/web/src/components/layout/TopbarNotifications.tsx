@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Bell } from 'lucide-react'
 import { fetchJson } from '@/lib/fetchJson'
 import { useSSE } from '@/hooks/useSSE'
@@ -122,17 +123,26 @@ export default function TopbarNotifications() {
 
       {open && (
         <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(100vw-1.5rem,22rem)] rounded-lg border border-gray-200 bg-white shadow-xl">
-          <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2">
+          <div className="flex items-center justify-between gap-2 border-b border-gray-100 px-3 py-2">
             <span className="text-sm font-semibold text-gray-900">Notifications</span>
-            {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={() => void markAllRead()}
-                className="text-xs font-medium text-brand-600 hover:text-brand-700"
+            <div className="flex items-center gap-2">
+              <Link
+                href="/notifications"
+                onClick={() => setOpen(false)}
+                className="text-xs font-medium text-gray-600 hover:text-gray-900"
               >
-                Mark all read
-              </button>
-            )}
+                View all
+              </Link>
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void markAllRead()}
+                  className="text-xs font-medium text-brand-600 hover:text-brand-700"
+                >
+                  Mark all read
+                </button>
+              )}
+            </div>
           </div>
           <ul className="max-h-[min(60vh,360px)] overflow-y-auto py-1">
             {items.length === 0 && (

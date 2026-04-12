@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Users, Megaphone, CreditCard,
   ShieldCheck, Wrench, CalendarCheck, BarChart2,
   AlertTriangle, LogOut, ChevronLeft, ChevronRight,
-  Car, ScanLine, Boxes, type LucideIcon,
+  Car, ScanLine, Boxes, Bell, type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useResident } from '@/context/ResidentContext'
@@ -18,6 +18,7 @@ import { DASHBOARD_NAV_ITEMS, isNavActive, type DashboardRole } from '@/lib/dash
 
 const NAV_ICONS: Record<string, LucideIcon> = {
   '/dashboard': LayoutDashboard,
+  '/notifications': Bell,
   '/residents': Users,
   '/units': Boxes,
   '/announcements': Megaphone,

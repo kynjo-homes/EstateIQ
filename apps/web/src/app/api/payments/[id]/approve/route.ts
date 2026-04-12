@@ -55,7 +55,8 @@ export async function PATCH(
       type: 'PAYMENT_APPROVED',
       title: 'Levy payment approved',
       body: `${payment.levy.title}: ${currency} ${payment.amount.toLocaleString()}`,
-      href: '/levies',
+      basePath: '/levies',
+      focus: { kind: 'LEVY', id: payment.levyId },
     })
 
     return NextResponse.json({ success: true })

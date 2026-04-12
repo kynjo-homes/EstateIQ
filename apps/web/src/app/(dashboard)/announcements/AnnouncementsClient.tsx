@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Plus, Megaphone, Trash2, Pencil, ChevronDown, ChevronUp,
   AlertTriangle, AlertCircle, Minus,
@@ -9,6 +9,7 @@ import { fetchJson } from '@/lib/fetchJson'
 import AnnouncementModal from './AnnouncementModal'
 import { useResident } from '@/context/ResidentContext'
 import DashboardConfirmDialog from '@/components/dashboard/DashboardConfirmDialog'
+import { useNotificationDeepLink } from '@/hooks/useNotificationDeepLink'
 
 type Priority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT'
 
@@ -57,6 +58,14 @@ export default function AnnouncementsClient() {
   const [view, setView]                   = useState<'kanban' | 'list'>('kanban')
   const [deleting, setDeleting]           = useState<string | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [highlightAnnouncementId, setHighlightAnnouncementId] = useState<string | null>(null)
+  const pendingAnnouncementFocus = useRef<string | null>(null)
+
+  useNotificationDeepLink((p) => {
+    if (p.focusKind === 'ANNOUNCEMENT' && p.focusId) {
+      pendingAnnouncementFocus.current = p.focusId
+    }
+  })
 
   async function load() {
     setLoading(true)
@@ -66,6 +75,25 @@ export default function AnnouncementsClient() {
   }
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (loading || !pendingAnnouncementFocus.current) return
+    const id = pendingAnnouncementFocus.current
+    const found = announcements.some((a) => a.id === id)
+    if (!found) {
+      pendingAnnouncementFocus.current = null
+      return
+    }
+    pendingAnnouncementFocus.current = null
+    setExpanded(id)
+    setView('kanban')
+    setHighlightAnnouncementId(id)
+    queueMicrotask(() => {
+      document.getElementById(`announcement-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+    const t = window.setTimeout(() => setHighlightAnnouncementId(null), 4500)
+    return () => window.clearTimeout(t)
+  }, [loading, announcements])
 
   async function executeDelete(id: string) {
     setDeleting(id)
@@ -224,6 +252,7 @@ export default function AnnouncementsClient() {
                         deleting={deleting === a.id}
                         onEdit={() => { setEditing(a); setShowModal(true) }}
                         onDelete={() => setDeleteConfirmId(a.id)}
+                        highlighted={highlightAnnouncementId === a.id}
                       />
                     ))}
                   </div>
@@ -247,7 +276,16 @@ export default function AnnouncementsClient() {
               </thead>
               <tbody>
                 {listSorted.map(a => (
-                  <tr key={a.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={a.id}
+                    id={`announcement-${a.id}`}
+                    className={cn(
+                      'border-b border-gray-50 transition-colors',
+                      highlightAnnouncementId === a.id
+                        ? 'bg-brand-50/90 ring-2 ring-inset ring-brand-200'
+                        : 'hover:bg-gray-50'
+                    )}
+                  >
                     <td className="px-4 py-3 align-top">
                       <p className="font-medium text-gray-900">{a.title}</p>
                       <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{a.body}</p>
@@ -336,6 +374,7 @@ function AnnouncementCard({
   deleting,
   onEdit,
   onDelete,
+  highlighted,
 }: {
   announcement: Announcement
   expanded: boolean
@@ -344,11 +383,20 @@ function AnnouncementCard({
   deleting: boolean
   onEdit: () => void
   onDelete: () => void
+  highlighted?: boolean
 }) {
   const isLong = a.body.length > 160
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden hover:border-gray-200 transition-colors">
+    <div
+      id={`announcement-${a.id}`}
+      className={cn(
+        'bg-white border rounded-xl overflow-hidden transition-colors',
+        highlighted
+          ? 'border-brand-300 shadow-md ring-2 ring-brand-200'
+          : 'border-gray-100 hover:border-gray-200'
+      )}
+    >
       <div
         className={cn(
           'h-1',

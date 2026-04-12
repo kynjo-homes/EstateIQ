@@ -3,9 +3,10 @@ import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
 
-const TAKE = 50
+const TAKE_DEFAULT = 50
+const TAKE_MAX = 200
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const userId = await getAuthUserId()
     if (!userId) {
@@ -19,11 +20,17 @@ export async function GET() {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
 
+    const { searchParams } = new URL(req.url)
+    const raw = parseInt(searchParams.get('limit') ?? '', 10)
+    const take = Number.isFinite(raw)
+      ? Math.min(Math.max(raw, 1), TAKE_MAX)
+      : TAKE_DEFAULT
+
     const [items, unreadCount] = await Promise.all([
       prisma.inAppNotification.findMany({
         where: { residentId: resident.id },
         orderBy: { createdAt: 'desc' },
-        take: TAKE,
+        take,
         select: {
           id: true,
           type: true,
