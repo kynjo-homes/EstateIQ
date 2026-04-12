@@ -3,6 +3,7 @@ import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
 import { sendToResident } from '@/lib/sseStore'
+import { notifyResident } from '@/lib/notifyResident'
 
 export async function POST(req: Request) {
   try {
@@ -74,6 +75,13 @@ export async function POST(req: Request) {
     sendToResident(visitor.residentId, 'visitor-denied-at-gate', {
       visitorName: visitor.name,
       purpose:     visitor.purpose,
+    })
+
+    await notifyResident(visitor.residentId, {
+      type: 'VISITOR_DENIED',
+      title: `Entry denied for ${visitor.name}`,
+      body: visitor.purpose ? `Stated purpose: ${visitor.purpose}` : null,
+      href: '/visitors',
     })
 
     const unitLabel = visitor.resident.unit

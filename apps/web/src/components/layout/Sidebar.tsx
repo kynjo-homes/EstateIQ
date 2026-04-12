@@ -8,117 +8,34 @@ import {
   LayoutDashboard, Users, Megaphone, CreditCard,
   ShieldCheck, Wrench, CalendarCheck, BarChart2,
   AlertTriangle, LogOut, ChevronLeft, ChevronRight,
-  Car, ScanLine, Boxes,
+  Car, ScanLine, Boxes, type LucideIcon,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useResident } from '@/context/ResidentContext'
 import { useMobileNav } from '@/context/MobileNavContext'
 import { CreditCard as SubscriptionIcon } from 'lucide-react'
+import { DASHBOARD_NAV_ITEMS, isNavActive, type DashboardRole } from '@/lib/dashboardNav'
 
-type Role = 'ADMIN' | 'SUPER_ADMIN' | 'SECURITY' | 'RESIDENT'
-
-interface NavItem {
-  label: string
-  href:  string
-  icon:  any
-  roles: Role[]   // which roles can see this item
+const NAV_ICONS: Record<string, LucideIcon> = {
+  '/dashboard': LayoutDashboard,
+  '/residents': Users,
+  '/units': Boxes,
+  '/announcements': Megaphone,
+  '/levies': CreditCard,
+  '/visitors': ShieldCheck,
+  '/maintenance': Wrench,
+  '/facilities': CalendarCheck,
+  '/polls': BarChart2,
+  '/incidents': AlertTriangle,
+  '/vehicles': Car,
+  '/vehicles/scan': ScanLine,
+  '/subscription': SubscriptionIcon,
 }
 
-const navItems: NavItem[] = [
-  {
-    label: 'Dashboard',
-    href:  '/dashboard',
-    icon:  LayoutDashboard,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Members',
-    href:  '/residents',
-    icon:  Users,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY'],
-  },
-  {
-    label: 'Units',
-    href:  '/units',
-    icon:  Boxes,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Announcements',
-    href:  '/announcements',
-    icon:  Megaphone,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Levies & Dues',
-    href:  '/levies',
-    icon:  CreditCard,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'RESIDENT'],
-  },
-  {
-    label: 'Visitors',
-    href:  '/visitors',
-    icon:  ShieldCheck,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Maintenance',
-    href:  '/maintenance',
-    icon:  Wrench,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Facilities',
-    href:  '/facilities',
-    icon:  CalendarCheck,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'RESIDENT'],
-  },
-  {
-    label: 'Polls',
-    href:  '/polls',
-    icon:  BarChart2,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'RESIDENT'],
-  },
-  {
-    label: 'Incidents',
-    href:  '/incidents',
-    icon:  AlertTriangle,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Vehicles',
-    href:  '/vehicles',
-    icon:  Car,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY', 'RESIDENT'],
-  },
-  {
-    label: 'Scanner',
-    href:  '/vehicles/scan',
-    icon:  ScanLine,
-    roles: ['ADMIN', 'SUPER_ADMIN', 'SECURITY'],
-  },
-  {
-    label: 'Subscription',
-    href:  '/subscription',
-    icon:  SubscriptionIcon,
-    roles: ['ADMIN', 'SUPER_ADMIN'],
-  },
-]
-
-const NAV_HREFS = navItems.map((i) => i.href)
-
-/** True when pathname matches this item, but not when a longer nav href is a better match (e.g. /vehicles vs /vehicles/scan). */
-function isNavActive(pathname: string, href: string) {
-  if (pathname === href) return true
-  if (!pathname.startsWith(href + '/')) return false
-  const moreSpecific = NAV_HREFS.filter(
-    (h) =>
-      h !== href &&
-      h.startsWith(href + '/') &&
-      (pathname === h || pathname.startsWith(h + '/'))
-  )
-  return moreSpecific.length === 0
-}
+const navItems = DASHBOARD_NAV_ITEMS.map((item) => ({
+  ...item,
+  icon: NAV_ICONS[item.href] ?? LayoutDashboard,
+}))
 
 const ROLE_BADGE: Record<string, string> = {
   ADMIN:       'bg-purple-900/50 text-purple-300',
@@ -133,7 +50,7 @@ export default function Sidebar() {
   const { profile }           = useResident()
   const { mobileOpen, closeMobileNav } = useMobileNav()
 
-  const currentRole = (profile?.role ?? 'RESIDENT') as Role
+  const currentRole = (profile?.role ?? 'RESIDENT') as DashboardRole
 
   const visibleItems = navItems.filter(item =>
     item.roles.includes(currentRole)

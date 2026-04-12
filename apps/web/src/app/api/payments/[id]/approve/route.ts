@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
+import { notifyResident } from '@/lib/notifyResident'
 
 export async function PATCH(
   _: Request,
@@ -26,6 +27,9 @@ export async function PATCH(
         id: paymentId,
         levy: { estateId: resident.estateId },
       },
+      include: {
+        levy: { select: { title: true, currency: true } },
+      },
     })
 
     if (!payment) {
@@ -44,6 +48,14 @@ export async function PATCH(
         status: 'PAID',
         paidAt: new Date(),
       },
+    })
+
+    const currency = payment.levy.currency ?? 'NGN'
+    await notifyResident(payment.residentId, {
+      type: 'PAYMENT_APPROVED',
+      title: 'Levy payment approved',
+      body: `${payment.levy.title}: ${currency} ${payment.amount.toLocaleString()}`,
+      href: '/levies',
     })
 
     return NextResponse.json({ success: true })

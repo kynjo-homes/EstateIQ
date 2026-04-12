@@ -3,6 +3,7 @@ import { getAuthUserId } from '@/lib/auth-request'
 import { prisma } from '@estateiq/database'
 import { logger } from '@/lib/logger'
 import { sendToResident } from '@/lib/sseStore'
+import { notifyResident } from '@/lib/notifyResident'
 
 export async function POST(req: Request) {
   try {
@@ -64,6 +65,13 @@ export async function POST(req: Request) {
       unit: visitor.resident.unit
         ? `${visitor.resident.unit.block ? visitor.resident.unit.block + ', ' : ''}${visitor.resident.unit.number}`
         : null,
+    })
+
+    await notifyResident(visitor.residentId, {
+      type: 'VISITOR_ARRIVED',
+      title: `${visitor.name} has arrived`,
+      body: visitor.purpose ? `Purpose: ${visitor.purpose}` : null,
+      href: '/visitors',
     })
 
     const unitLabel = visitor.resident.unit

@@ -1,25 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Star } from "lucide-react";
+import adeyemiAvatar from "@/components/images/Adeyemi.png";
+import patienceAvatar from "@/components/images/patiencenew.png";
+import fatimaAvatar from "@/components/images/Fatima.png";
 
 const testimonials = [
   {
-    name: "Ngozi Adeyemi",
+    name: "Luke Adeyemi",
     role: "Estate Manager, Parkview Gardens",
     quote:
       "We cut our arrears rate by 60% in the first quarter. The automated reminders alone paid for the subscription.",
     rating: 5,
   },
   {
-    name: "David Okonkwo",
+    name: "Patience Okonkwo",
     role: "HOA Chair, Lekki Crescent",
     quote:
       "Our AGM went from a 3-hour shouting match to a 45-minute productive meeting, because everyone could see the financials in advance.",
     rating: 5,
   },
   {
-    name: "Amara Chukwu",
+    name: "Fatima Umar",
     role: "Facility Manager, The Reserve",
     quote:
       "Maintenance turnaround dropped from 11 days to 3. Residents are happier, and my team is less stressed.",
@@ -70,8 +74,32 @@ const Testimonials = () => {
                 "{t.quote}"
               </blockquote>
               <div className="mt-6 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
-                  {t.name.split(" ").map(n => n[0]).join("")}
+                <div className="relative shrink-0 w-16 h-16 rounded-full overflow-hidden bg-muted">
+                  {i === 0 ? (
+                    <Image
+                      src={adeyemiAvatar}
+                      alt="Luke Adeyemi"
+                      fill
+                      className="object-cover object-center"
+                      sizes="64px"
+                    />
+                  ) : i === 1 ? (
+                    <Image
+                      src={patienceAvatar}
+                      alt="Patience Okonkwo"
+                      fill
+                      className="object-cover object-[50%_28%]"
+                      sizes="64px"
+                    />
+                  ) : (
+                    <Image
+                      src={fatimaAvatar}
+                      alt="Fatima Umar"
+                      fill
+                      className="object-cover object-center"
+                      sizes="64px"
+                    />
+                  )}
                 </div>
                 <div>
                   <div className="text-sm font-medium text-foreground">{t.name}</div>

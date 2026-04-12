@@ -99,10 +99,27 @@ model Resident {
   votes             Vote[]
   vehicles          Vehicle[]
   scanLogs          ScanLog[]
+  inAppNotifications InAppNotification[]
   @@index([estateId])
   @@index([userId])
   @@index([estateId, isActive])
   @@index([residentScanToken])
+}
+
+/// Bell / inbox notifications for a resident (dashboard).
+model InAppNotification {
+  id          String   @id @default(cuid())
+  residentId  String
+  resident    Resident @relation(fields: [residentId], references: [id], onDelete: Cascade)
+  type        String
+  title       String
+  body        String?
+  href        String?
+  readAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([residentId, createdAt(sort: Desc)])
+  @@index([residentId, readAt])
 }
 
 // ─── ANNOUNCEMENTS ────────────────────────────────────────

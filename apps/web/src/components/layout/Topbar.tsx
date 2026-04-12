@@ -1,9 +1,10 @@
 'use client'
-import { Bell, Search } from 'lucide-react'
 import { useSession } from '@/components/layout/SessionProvider'
 import { useResident } from '@/context/ResidentContext'
 import MobileMenuButton from '@/components/layout/MobileMenuButton'
 import UserMenu from '@/components/layout/UserMenu'
+import DashboardSearch from '@/components/layout/DashboardSearch'
+import TopbarNotifications from '@/components/layout/TopbarNotifications'
 
 interface Props {
   title: string
@@ -25,19 +26,9 @@ export default function Topbar({ title }: Props) {
         </h1>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-        {/* Search */}
-        <div className="hidden md:flex items-center gap-2 bg-gray-50 border border-gray-200 rounded px-3 py-1.5 text-sm text-gray-400 w-52">
-          <Search size={14} />
-          <span>Search...</span>
-        </div>
-
-        {/* Notifications */}
-        <button className="relative p-2 rounded text-gray-500 hover:bg-gray-100 transition-colors">
-          <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
-
+      <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
+        <DashboardSearch />
+        <TopbarNotifications />
         <UserMenu initials={initials} />
       </div>
     </header>
